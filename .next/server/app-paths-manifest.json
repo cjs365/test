@@ -1,7 +1,0 @@
-{
-  "/page": "app/page.js",
-  "/screener/page": "app/screener/page.js",
-  "/charting/page": "app/charting/page.js",
-  "/stock/page": "app/stock/page.js",
-  "/_not-found/page": "app/_not-found/page.js"
-}
