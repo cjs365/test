@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Appeals Antitrust Decision - ClarVal</title>
+    <!-- Bootstrap CSS for responsive layout -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <style>
+        /* Reuse the base styles from index.html */
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #3c6382;
+            --accent-color: #0A4174;
+            --light-gray: #f8f9fa;
+            --medium-gray: #e9ecef;
+            --dark-gray: #495057;
+            --positive-color: #44bd32;
+            --negative-color: #e84118;
+            --border-color: #dee2e6;
+            --button-color: #0A4174;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            background-color: #fff;
+        }
+        
+        .navbar {
+            background-color: #000000;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: white;
+        }
+        
+        .search-container {
+            width: 100%;
+            max-width: 300px;
+            margin-right: 10px;
+        }
+
+        /* Article specific styles */
+        .article-header {
+            padding: 2rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .article-meta {
+            color: var(--dark-gray);
+            font-size: 0.9rem;
+            margin: 1rem 0;
+        }
+
+        .article-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin: 2rem 0;
+        }
+
+        .article-content p {
+            margin-bottom: 1.5rem;
+        }
+
+        .article-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .article-tags {
+            margin: 2rem 0;
+        }
+
+        .tag {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            margin-right: 0.5rem;
+            font-size: 0.9rem;
+            text-decoration: none;
+        }
+
+        .tag:hover {
+            background-color: var(--medium-gray);
+            color: var(--dark-gray);
+        }
+
+        .related-articles {
+            margin: 2rem 0;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .related-article {
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+
+        .related-article:hover {
+            background-color: var(--light-gray);
+        }
+
+        .related-article h5 {
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .related-article p {
+            color: var(--dark-gray);
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        .stock-widget {
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stock-price {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0.5rem 0;
+        }
+
+        .stock-change {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stock-chart {
+            height: 200px;
+            margin: 1rem 0;
+        }
+
+        .author-info {
+            display: flex;
+            align-items: center;
+            margin: 2rem 0;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .author-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 1rem;
+        }
+
+        .author-bio {
+            font-size: 0.9rem;
+            color: var(--dark-gray);
+        }
+
+        .share-buttons {
+            margin: 2rem 0;
+        }
+
+        .share-button {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin-right: 0.5rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .share-button i {
+            margin-right: 0.5rem;
+        }
+
+        .share-button:hover {
+            background-color: var(--medium-gray);
+            color: var(--dark-gray);
+        }
+
+        /* Footer styles from index.html */
+        .footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
+            margin-top: 30px;
+        }
+
+        /* Add new styles */
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .social-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark-gray);
+            transition: all 0.2s;
+        }
+
+        .social-icon:hover {
+            background: var(--medium-gray);
+            color: var(--dark-gray);
+        }
+
+        .article-summary {
+            background: var(--light-gray);
+            padding: 1.5rem;
+            border-radius: 4px;
+            margin: 1.5rem 0;
+        }
+
+        .summary-point {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-point i {
+            color: var(--accent-color);
+            margin-top: 0.25rem;
+        }
+
+        .stocks-mentioned {
+            background: white;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin: 2rem 0;
+        }
+
+        .stock-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stock-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .watchlist-btn {
+            padding: 0.25rem 0.75rem;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            border-radius: 4px;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .watchlist-btn:hover {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .comments-section {
+            margin: 2rem 0;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .comment-form {
+            margin-bottom: 2rem;
+        }
+
+        .comment-input {
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 1rem;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .comment {
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .most-read {
+            background: white;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 2rem;
+        }
+
+        .most-read-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .most-read-number {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            opacity: 0.5;
+        }
+
+        /* Update the stock styles */
+        .stock-pill {
+            display: inline-flex;
+            align-items: center;
+            background: #1a1a1a;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 100px;
+            margin-right: 0.75rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .stock-pill .price {
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .stock-pill .change {
+            color: #ff4d4d;
+        }
+
+        .stock-pill .change.positive {
+            color: #4dff4d;
+        }
+
+        .stock-pill .add-btn {
+            margin-left: 0.75rem;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .stock-pill .add-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .sidebar-section {
+            background: white;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-section h4 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar (reused from index.html) -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">ClarVal</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="#">Markets</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Economics</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">Industries</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Tech</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Politics</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Businessweek</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Opinion</a></li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="search-container">
+                        <div class="input-group">
+                            <input type="text" class="form-control form-control-sm" placeholder="Search...">
+                            <button class="btn btn-sm btn-outline-light"><i class="fas fa-search"></i></button>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Article Content (8 columns) -->
+            <div class="col-lg-8">
+                <article>
+                    <header class="article-header">
+                        <h1 style="font-size: 2.5rem; line-height: 1.2; margin-bottom: 1rem;">Google Says It Will Appeal Online Search Antitrust Decision</h1>
+                        <div class="article-meta">
+                            <span><i class="fas fa-user"></i> By Reuters Staff</span>
+                            <span class="mx-2">|</span>
+                            <span><i class="fas fa-clock"></i> Published: March 25, 2024, 11:42 AM</span>
+                            <span class="mx-2">|</span>
+                            <span><i class="fas fa-folder"></i> Technology</span>
+                        </div>
+
+                        <div class="social-icons">
+                            <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#" class="social-icon"><i class="fas fa-envelope"></i></a>
+                            <a href="#" class="social-icon"><i class="fas fa-link"></i></a>
+                        </div>
+                    
+                        <img src="https://www.reuters.com/resizer/hO3Fy0Qe5P_vYQz8oN5-4yqd_Yw=/960x0/filters:quality(80)/cloudfront-us-east-2.images.arcpublishing.com/reuters/T3JXJRAFCJLWBKQD5KQDT4G55M.jpg" alt="Google Headquarters" class="article-image">
+
+                    </header>
+                    <div class="article-summary">
+                        <div class="summary-point d-flex align-items-start">
+                            <i class="fas fa-circle mt-2" style="font-size: 0.4rem; margin-right: 0.5rem;"></i>
+                            <p class="mb-2">Google to appeal federal judge's decision requiring restructuring of its online search business</p>
+                        </div>
+                        <div class="summary-point d-flex align-items-start">
+                            <i class="fas fa-circle mt-2" style="font-size: 0.4rem; margin-right: 0.5rem;"></i>
+                            <p class="mb-2">DOJ wants Google to share search data and end exclusive agreements with smartphone makers</p>
+                        </div>
+                        <div class="summary-point d-flex align-items-start">
+                            <i class="fas fa-circle mt-2" style="font-size: 0.4rem; margin-right: 0.5rem;"></i>
+                            <p class="mb-2">Antitrust concerns extend to Google's advantage in AI products and search monopoly</p>
+                        </div>
+                    </div>
+
+                    <div class="article-content">
+                        <p>Google said on Monday it would appeal a federal judge's decision under which the search giant would have to restructure its online search business in a way that could be more extensive than the 10-year regime suggested by antitrust enforcers.</p>
+
+                        <p>"We will wait for the Court's opinion. And we will strongly believe the Court's original decision was wrong, and we look forward to our eventual appeal," Google said in a post on X.</p>
+
+                        <p>U.S. District Judge Amit Mehta in Washington heard closing arguments on Friday at a trial on proposals to address Google's illegal monopoly in online search and related advertising.</p>
+
+                        <p>In April, a federal judge said that Google illegally dominated two markets for online advertising technology, with the U.S. Department of Justice saying that Google should sell off at least its Google Ad Manager, which includes the company's publisher ad server and its ad exchange.</p>
+
+                        <p>The DOJ and a coalition of states want Google to share search data and cease exclusive agreements with Apple (NASDAQ:AAPL) and other smartphone makers to be the default search engine on new devices.</p>
+
+                        <blockquote class="blockquote">
+                            <p>"We remain committed to providing the best search experience while fostering competition and innovation in the digital marketplace."</p>
+                            <footer class="blockquote-footer">John Schmidtlein, Google's attorney</footer>
+                        </blockquote>
+
+                        <p>Antitrust enforcers are concerned about how Google's search monopoly gives it an advantage in artificial intelligence products like generative AI versus rivals.</p>
+                    </div>
+
+                    <div class="article-tags">
+                        <a href="#" class="tag">#Google</a>
+                        <a href="#" class="tag">#Antitrust</a>
+                        <a href="#" class="tag">#Technology</a>
+                        <a href="#" class="tag">#Legal</a>
+                        <a href="#" class="tag">#DOJ</a>
+                    </div>
+
+
+                    <div class="comments-section">
+                        <h4>Comments</h4>
+                        <div class="comment-form">
+                            <textarea class="comment-input" placeholder="Add your comment..." rows="4"></textarea>
+                            <button class="btn btn-primary">Post Comment</button>
+                        </div>
+                        <div class="comments-list">
+                            <div class="comment">
+                                <div class="comment-header">
+                                    <strong>John Doe</strong>
+                                    <small class="text-muted">2 hours ago</small>
+                                </div>
+                                <p>This could have significant implications for the tech industry as a whole. Interesting to see how it plays out.</p>
+                            </div>
+                            <div class="comment">
+                                <div class="comment-header">
+                                    <strong>Jane Smith</strong>
+                                    <small class="text-muted">5 hours ago</small>
+                                </div>
+                                <p>The AI aspect of this case is particularly interesting. Google's search data advantage is crucial for AI development.</p>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="related-articles">
+                        <h4>Related Articles</h4>
+                        <div class="related-articles-container d-flex">
+                            <div class="related-article">
+                                <img src="https://via.placeholder.com/200x120" alt="DOJ Antitrust Case" class="related-article-image">
+                                <h5>DOJ's Antitrust Case Against Google: What You Need to Know</h5>
+                                <small class="text-muted">2 days ago</small>
+                            </div>
+                            <div class="related-article">
+                                <img src="https://via.placeholder.com/200x120" alt="Tech Giants Scrutiny" class="related-article-image">
+                                <h5>Tech Giants Face Increased Regulatory Scrutiny Worldwide</h5>
+                                <small class="text-muted">4 days ago</small>
+                            </div>
+                            <div class="related-article">
+                                <img src="https://via.placeholder.com/200x120" alt="Antitrust Impact" class="related-article-image">
+                                <h5>The Impact of Antitrust Regulations on Tech Innovation</h5>
+                                <small class="text-muted">1 week ago</small>
+                            </div>
+                        </div>
+                    </div>
+
+                </article>
+            </div>
+
+            <!-- Sidebar (4 columns) -->
+            <div class="col-lg-4">
+                <!-- Stocks In Article -->
+                <div class="sidebar-section">
+                    <h4>Stocks in this Article</h4>
+                    <div class="stocks-mentioned mt-4">
+                        <div class="stock-pill">
+                            <span class="symbol">GOOGL</span>
+                            <span class="price">159,300.00</span>
+                            <span class="change">▼ 1.18%</span>
+                            <button class="add-btn">+</button>
+                        </div>
+                        <div class="stock-pill">
+                            <span class="symbol">AAPL</span>
+                            <span class="price">178.14</span>
+                            <span class="change positive">▲ 0.81%</span>
+                            <button class="add-btn">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Most Read Articles -->
+                <div class="sidebar-section">
+                    <h4>Most Read</h4>
+                    <div class="most-read-item">
+                        <span class="most-read-number">1</span>
+                        <div>
+                            <h6>Fed Signals Potential Rate Cut Timeline</h6>
+                            <small class="text-muted">2.5M reads</small>
+                        </div>
+                    </div>
+                    <div class="most-read-item">
+                        <span class="most-read-number">2</span>
+                        <div>
+                            <h6>Tesla's New Battery Technology Breakthrough</h6>
+                            <small class="text-muted">1.8M reads</small>
+                        </div>
+                    </div>
+                    <div class="most-read-item">
+                        <span class="most-read-number">3</span>
+                        <div>
+                            <h6>Apple's Vision Pro Sales Exceed Expectations</h6>
+                            <small class="text-muted">1.2M reads</small>
+                        </div>
+                    </div>
+                    <div class="most-read-item">
+                        <span class="most-read-number">4</span>
+                        <div>
+                            <h6>Nvidia's AI Chip Demand Continues to Surge</h6>
+                            <small class="text-muted">980K reads</small>
+                        </div>
+                    </div>
+                    <div class="most-read-item">
+                        <span class="most-read-number">5</span>
+                        <div>
+                            <h6>Microsoft's Cloud Revenue Hits New Record</h6>
+                            <small class="text-muted">875K reads</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer (reused from index.html) -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <h5>ClarVal</h5>
+                    <p class="small">Professional stock analysis and portfolio management tools for individual investors.</p>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <h5>Products</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white">Stock Screener</a></li>
+                        <li><a href="#" class="text-white">Portfolio Analysis</a></li>
+                        <li><a href="#" class="text-white">Research Reports</a></li>
+                        <li><a href="#" class="text-white">Market Data</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <h5>Resources</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white">Learning Center</a></li>
+                        <li><a href="#" class="text-white">Market News</a></li>
+                        <li><a href="#" class="text-white">Economic Calendar</a></li>
+                        <li><a href="#" class="text-white">API Documentation</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <h5>Company</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white">About Us</a></li>
+                        <li><a href="#" class="text-white">Careers</a></li>
+                        <li><a href="#" class="text-white">Contact</a></li>
+                        <li><a href="#" class="text-white">Terms & Privacy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="bg-light">
+            <div class="row">
+                <div class="col-md-6 small">
+                    &copy; 2023 ClarVal Financial Analytics. All rights reserved.
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-2"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-white me-2"><i class="fab fa-linkedin"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-github"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Stock Chart
+        document.addEventListener('DOMContentLoaded', function() {
+            const stockChart = new Chart(document.getElementById('stockChart'), {
+                type: 'line',
+                data: {
+                    labels: ['9:30', '10:00', '10:30', '11:00', '11:30', '12:00'],
+                    datasets: [{
+                        label: 'GOOGL',
+                        data: [154.20, 153.80, 153.40, 153.00, 152.60, 152.43],
+                        borderColor: '#e84118',
+                        backgroundColor: 'rgba(232, 65, 24, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                display: false
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                display: false
+                            }
+                        }
+                    },
+                    elements: {
+                        point: {
+                            radius: 0
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
