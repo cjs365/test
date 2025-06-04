@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/app/components/ui/button';
 import {
   Select,
@@ -46,6 +46,7 @@ export default function CriteriaBuilder({
 }: CriteriaBuilderProps) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const [suggestions, setSuggestions] = useState<{ index: number; suggestions: MetricType[] }[]>([]);
 
   const handleAddCriterion = () => {
     const newCriterion: Criterion = {
@@ -59,6 +60,8 @@ export default function CriteriaBuilder({
   const handleRemoveCriterion = (index: number) => {
     const newCriteria = criteria.filter((_, i) => i !== index);
     onCriteriaChange(newCriteria);
+    // Remove suggestions for this index
+    setSuggestions(suggestions.filter(s => s.index !== index));
   };
 
   const handleCriterionChange = (
@@ -74,9 +77,44 @@ export default function CriteriaBuilder({
     onCriteriaChange(newCriteria);
   };
 
+  const handleMetricInput = (index: number, value: string) => {
+    // Update the criterion with the current input value
+    handleCriterionChange(index, 'metric', value);
+    
+    // Filter metrics based on input
+    const filteredSuggestions = value 
+      ? metrics.filter(metric => metric.toLowerCase().includes(value.toLowerCase()))
+      : [...metrics]; // Show all metrics when input is empty
+    
+    // Update suggestions for this index
+    const newSuggestions = [...suggestions.filter(s => s.index !== index)];
+    if (filteredSuggestions.length > 0) {
+      newSuggestions.push({ index, suggestions: filteredSuggestions });
+    }
+    setSuggestions(newSuggestions);
+  };
+
+  const selectSuggestion = (index: number, metric: MetricType) => {
+    handleCriterionChange(index, 'metric', metric);
+    // Clear suggestions for this index
+    setSuggestions(suggestions.filter(s => s.index !== index));
+  };
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setSuggestions([]);
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="bg-transparent">
-      <div className="flex justify-end mb-2">
+      <div className="flex justify-start mb-2">
         <Button
           onClick={handleAddCriterion}
           className={`text-white ${isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'}`}
@@ -97,31 +135,59 @@ export default function CriteriaBuilder({
               key={index}
               className="flex flex-wrap items-center gap-2 py-2 relative group"
             >
-              <Select
-                value={criterion.metric}
-                onValueChange={(value: MetricType) =>
-                  handleCriterionChange(index, 'metric', value)
-                }
+              <button
+                onClick={() => handleRemoveCriterion(index)}
+                className={`${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
+                aria-label="Remove criterion"
               >
-                <SelectTrigger className={`w-[160px] text-xs h-8 ${
-                  isDark 
-                    ? 'bg-gray-800 border-gray-700 text-gray-200' 
-                    : 'bg-white border-gray-300 text-gray-900'
-                }`}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className={
-                  isDark 
-                    ? 'bg-gray-800 border-gray-700 text-gray-200' 
-                    : 'bg-white border-gray-300 text-gray-900'
-                }>
-                  {metrics.map((metric) => (
-                    <SelectItem key={metric} value={metric}>
-                      {metric}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <X className="h-4 w-4" />
+              </button>
+              
+              <div className="relative w-[160px]">
+                <Input
+                  type="text"
+                  value={criterion.metric}
+                  onChange={(e) => handleMetricInput(index, e.target.value)}
+                  className={`text-xs h-8 ${
+                    isDark 
+                      ? 'bg-gray-800 border-gray-700 text-gray-200' 
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}
+                  placeholder="Type to search..."
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Show all metrics when input is clicked
+                    if (!suggestions.find(s => s.index === index)) {
+                      handleMetricInput(index, criterion.metric);
+                    }
+                  }}
+                />
+                
+                {suggestions.find(s => s.index === index) && (
+                  <div className={`absolute z-10 w-full mt-1 max-h-60 overflow-auto rounded-md border ${
+                    isDark 
+                      ? 'bg-gray-800 border-gray-700 text-gray-200' 
+                      : 'bg-white border-gray-300 text-gray-900'
+                  }`}>
+                    {suggestions.find(s => s.index === index)?.suggestions.map((suggestion) => (
+                      <div
+                        key={suggestion}
+                        className={`px-3 py-2 text-xs cursor-pointer ${
+                          isDark 
+                            ? 'hover:bg-gray-700' 
+                            : 'hover:bg-gray-100'
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          selectSuggestion(index, suggestion);
+                        }}
+                      >
+                        {suggestion}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               <Select
                 value={criterion.operator}
@@ -183,14 +249,6 @@ export default function CriteriaBuilder({
                   />
                 </>
               )}
-
-              <button
-                onClick={() => handleRemoveCriterion(index)}
-                className={`ml-auto ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
-                aria-label="Remove criterion"
-              >
-                <X className="h-4 w-4" />
-              </button>
             </div>
           ))
         )}

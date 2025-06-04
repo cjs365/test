@@ -142,6 +142,15 @@ interface MockData {
   val1_display: ValuationVariables;
 }
 
+// Scenario management interface
+interface Scenario {
+  name: string;
+  description?: string;
+  data: TableData;
+  valuationVars: ValuationVariables;
+  createdAt: string;
+}
+
 // Mock data based on the provided values
 const mockData: MockData = {
   headers: ['2019', '2020', '2021', '2022', '2023', '2024', '2025', '2026', '2027', '2028', '2029'],
@@ -251,7 +260,7 @@ const calculateGrowthRate = (currentValue: number, previousValue: number) => {
 
 export default function ModellingPage({ params }: { params: { symbol: string } }) {
   const [tableData, setTableData] = useState<TableData>(() => {
-    // Initialize with mock data and calculate IC change
+    // Initialize with mock data and calculate IC change and FCF growth
     const initialData: TableData = {
       total_revenue: { ...mockData.data.total_revenue },
       revenue_gr: { ...mockData.data.revenue_gr },
@@ -259,9 +268,9 @@ export default function ModellingPage({ params }: { params: { symbol: string } }
       earnings_margin: { ...mockData.data.earnings_margin },
       ic: { ...mockData.data.ic },
       ic_gr: { ...mockData.data.ic_gr },
-      ic_change: {},  // Will be calculated
       aroic: { ...mockData.data.aroic },
       fcf: { ...mockData.data.fcf },
+      ic_change: {},  // Will be calculated
       fcf_gr: {}  // New FCF growth rate field
     };
 
@@ -286,19 +295,37 @@ export default function ModellingPage({ params }: { params: { symbol: string } }
 
     return initialData;
   });
-
-  const [valuationVars, setValuationVars] = useState<ValuationVariables>(mockData.val1_display);
-  const [aiValuation, setAiValuation] = useState<string>('');
+  const [valuationVars, setValuationVars] = useState<ValuationVariables>({ ...mockData.val1_display });
+  const [aiValuation, setAiValuation] = useState<string | null>(null);
+  const [isAiValuationExpanded, setIsAiValuationExpanded] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [loadingMessage, setLoadingMessage] = useState<string>('');
+  const [loadingMessage, setLoadingMessage] = useState('');
   const [loadingDots, setLoadingDots] = useState('');
-  const [isVariablesExpanded, setIsVariablesExpanded] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAiValuationExpanded, setIsAiValuationExpanded] = useState(true);
   const [aiScenario, setAiScenario] = useState<AIScenario | null>(null);
-
-  // Add ref for scroll container
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [sensitivityData, setSensitivityData] = useState<{
+    growth: number[];
+    margins: number[];
+    matrix: number[][];
+    chartData: Array<{ growth: number } & { [key: string]: number }>;
+  } | null>(null);
+  
+  // Add enterprise value, equity value, and price per share state variables
+  const [enterpriseValue, setEnterpriseValue] = useState<number | null>(null);
+  const [equityValue, setEquityValue] = useState<number | null>(null);
+  const [pricePerShare, setPricePerShare] = useState<number | null>(null);
+  const [upside, setUpside] = useState<string>('0.0');
+  
+  // Add state for scenario management
+  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [scenarioName, setScenarioName] = useState('');
+  const [scenarioDescription, setScenarioDescription] = useState('');
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showLoadModal, setShowLoadModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareLink, setShareLink] = useState('');
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [shareMessage, setShareMessage] = useState<string>('');
 
   // Scroll to right on mount
   useEffect(() => {
@@ -518,10 +545,10 @@ HOLD with a 12-month price target of $165.20`);
   };
 
   const handleSubmit = async () => {
-    setIsSubmitting(true);
+    setIsGenerating(true);
     // Here you would typically send the data to your backend
     await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-    setIsSubmitting(false);
+    setIsGenerating(false);
   };
 
   // Add handler for resetting to default values
@@ -585,21 +612,30 @@ HOLD with a 12-month price target of $165.20`);
   };
 
   // Calculate valuation results
-  const enterpriseValue = calculateEnterpriseValue(valuationVars, tableData.fcf, mockData.headers);
-  const equityValue = calculateEquityValue(enterpriseValue, valuationVars);
-  const pricePerShare = calculatePricePerShare(equityValue, valuationVars);
-  
-  // Calculate upside/downside
-  const currentPrice = 185.20; // This should come from your data
-  const upside = ((pricePerShare - currentPrice) / currentPrice * 100).toFixed(1);
-
-  // Add sensitivity analysis state
-  const [sensitivityData, setSensitivityData] = useState<{
-    growth: number[];
-    margins: number[];
-    matrix: number[][];
-    chartData: Array<{ growth: number } & { [key: string]: number }>;
-  } | null>(null);
+  const calculateValuationResults = () => {
+    try {
+      // Calculate enterprise value
+      const newEnterpriseValue = calculateEnterpriseValue(valuationVars, tableData.fcf, mockData.headers);
+      
+      // Calculate equity value (only if enterprise value is available)
+      const newEquityValue = calculateEquityValue(newEnterpriseValue, valuationVars);
+      
+      // Calculate price per share (only if equity value is available)
+      const newPricePerShare = calculatePricePerShare(newEquityValue, valuationVars);
+      
+      // Calculate upside/downside
+      const currentPrice = 185.20; // This should come from your data
+      const newUpside = ((newPricePerShare - currentPrice) / currentPrice * 100).toFixed(1);
+      
+      // Update state with calculated values
+      setEnterpriseValue(newEnterpriseValue);
+      setEquityValue(newEquityValue);
+      setPricePerShare(newPricePerShare);
+      setUpside(newUpside);
+    } catch (error) {
+      console.error('Error calculating valuation results:', error);
+    }
+  };
 
   // Add sensitivity matrix generation function
   const generateSensitivityMatrix = () => {
@@ -633,6 +669,193 @@ HOLD with a 12-month price target of $165.20`);
     setSensitivityData({ growth, margins, matrix, chartData });
   };
 
+  // Function to recalculate all derived values after loading a scenario
+  const recalculateValues = () => {
+    // Create a copy of the current table data
+    const updatedData = { ...tableData };
+    
+    // Ensure all required properties exist
+    if (!updatedData.ic_change) updatedData.ic_change = {};
+    if (!updatedData.fcf_gr) updatedData.fcf_gr = {};
+    
+    // Recalculate all derived values for all years
+    mockData.headers.forEach((year, index) => {
+      if (index > 0) { // Skip first year as it needs previous year data
+        const prevYear = mockData.headers[index - 1];
+        
+        // Recalculate revenue if it's a forecast year
+        if (index > 5) {
+          updatedData.total_revenue[year] = calculateTotalRevenue(
+            updatedData.total_revenue[prevYear],
+            updatedData.revenue_gr[year]
+          );
+          
+          // Recalculate earnings
+          updatedData.economic_earnings[year] = calculateEconomicEarnings(
+            updatedData.total_revenue[year],
+            updatedData.earnings_margin[year]
+          );
+          
+          // Recalculate IC
+          updatedData.ic[year] = calculateIC(
+            updatedData.ic[prevYear],
+            updatedData.ic_gr[year]
+          );
+        }
+        
+        // Calculate IC Change (for all years)
+        updatedData.ic_change[year] = calculateICChange(
+          updatedData.ic[year],
+          updatedData.ic[prevYear]
+        );
+        
+        // Calculate AROIC (for all years)
+        updatedData.aroic[year] = calculateAROIC(
+          updatedData.economic_earnings[year],
+          updatedData.ic[year]
+        );
+        
+        // Calculate FCF (for all years)
+        updatedData.fcf[year] = calculateFCF(
+          updatedData.economic_earnings[year],
+          updatedData.ic_change[year]
+        );
+        
+        // Calculate FCF growth rate (for all years)
+        updatedData.fcf_gr[year] = calculateGrowthRate(
+          updatedData.fcf[year],
+          updatedData.fcf[prevYear]
+        );
+      } else {
+        // First year has no change or growth rate
+        updatedData.ic_change[year] = 0;
+        updatedData.fcf_gr[year] = 0;
+      }
+    });
+    
+    // Update the table data state
+    setTableData(updatedData);
+    
+    // Recalculate valuation
+    calculateValuationResults();
+  };
+  
+  // Load saved scenarios from localStorage on component mount
+  useEffect(() => {
+    const savedScenarios = localStorage.getItem(`scenarios_${params.symbol}`);
+    if (savedScenarios) {
+      setScenarios(JSON.parse(savedScenarios));
+    }
+  }, [params.symbol]);
+
+  // Save scenario function
+  const handleSaveScenario = () => {
+    if (!scenarioName.trim()) return;
+    
+    const newScenario: Scenario = {
+      name: scenarioName,
+      description: scenarioDescription,
+      data: tableData,
+      valuationVars: valuationVars,
+      createdAt: new Date().toISOString()
+    };
+    
+    const updatedScenarios = [...scenarios, newScenario];
+    setScenarios(updatedScenarios);
+    localStorage.setItem(`scenarios_${params.symbol}`, JSON.stringify(updatedScenarios));
+    
+    // Reset and close modal
+    setScenarioName('');
+    setScenarioDescription('');
+    setShowSaveModal(false);
+  };
+
+  // Load scenario function
+  const handleLoadScenario = (scenario: Scenario) => {
+    // Ensure the loaded data has all required properties
+    const loadedData = { ...scenario.data };
+    
+    // Initialize any missing properties
+    if (!loadedData.ic_change) loadedData.ic_change = {};
+    if (!loadedData.fcf_gr) loadedData.fcf_gr = {};
+    
+    // Set the data and variables
+    setTableData(loadedData);
+    setValuationVars(scenario.valuationVars);
+    setShowLoadModal(false);
+    
+    // Recalculate derived values
+    recalculateValues();
+  };
+
+  // Delete scenario function
+  const handleDeleteScenario = (index: number) => {
+    const updatedScenarios = [...scenarios];
+    updatedScenarios.splice(index, 1);
+    setScenarios(updatedScenarios);
+    localStorage.setItem(`scenarios_${params.symbol}`, JSON.stringify(updatedScenarios));
+  };
+
+  // Share scenario function
+  const handleShareScenario = (scenario: Scenario) => {
+    // Create a shareable object with scenario data
+    const shareableData = {
+      symbol: params.symbol,
+      scenario: scenario
+    };
+    
+    // Convert to base64 for URL sharing
+    const encodedData = btoa(JSON.stringify(shareableData));
+    const link = `${window.location.origin}/stock/${params.symbol}/modelling?scenario=${encodedData}`;
+    
+    setShareLink(link);
+    setShareMessage(`Check out my ${params.symbol} valuation scenario!`);
+    setShowShareModal(true);
+  };
+
+  // Copy share link to clipboard
+  const copyToClipboard = () => {
+    const textToCopy = `${shareMessage}\n\n${shareLink}`;
+    
+    navigator.clipboard.writeText(textToCopy)
+      .then(() => {
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      })
+      .catch(err => console.error('Failed to copy: ', err));
+  };
+
+  // Check for shared scenario in URL on component mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sharedScenario = urlParams.get('scenario');
+      
+      if (sharedScenario) {
+        try {
+          const decodedData = JSON.parse(atob(sharedScenario));
+          if (decodedData.symbol === params.symbol && decodedData.scenario) {
+            // Ensure the loaded data has all required properties
+            const loadedData = { ...decodedData.scenario.data };
+            
+            // Initialize any missing properties
+            if (!loadedData.ic_change) loadedData.ic_change = {};
+            if (!loadedData.fcf_gr) loadedData.fcf_gr = {};
+            
+            // Set the data and variables
+            setTableData(loadedData);
+            setValuationVars(decodedData.scenario.valuationVars);
+            
+            // Recalculate derived values
+            recalculateValues();
+          }
+        } catch (error) {
+          console.error('Error loading shared scenario:', error);
+        }
+      }
+    }
+  }, [params.symbol]);
+
   return (
     <StockLayout symbol={params.symbol} companyName="Apple Inc.">
       <div className="bg-white min-h-screen">
@@ -644,6 +867,43 @@ HOLD with a 12-month price target of $165.20`);
               <div className="flex justify-between items-start mb-6">
                 <h3 className="text-lg font-medium text-gray-900">Valuation Assumptions</h3>
                 <div className="flex items-center space-x-2">
+                  {/* Add scenario management buttons */}
+                  <button
+                    onClick={() => setShowSaveModal(true)}
+                    className="inline-flex items-center px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 rounded-md transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setShowLoadModal(true)}
+                    className="inline-flex items-center px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 rounded-md transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    Load
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Create a shareable object with current scenario data
+                      const currentScenario: Scenario = {
+                        name: "Current Scenario",
+                        data: tableData,
+                        valuationVars: valuationVars,
+                        createdAt: new Date().toISOString()
+                      };
+                      handleShareScenario(currentScenario);
+                    }}
+                    className="inline-flex items-center px-3 py-1 text-sm text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 rounded-md transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    </svg>
+                    Share
+                  </button>
                   {aiValuation && (
                     <button
                       onClick={() => setIsAiValuationExpanded(!isAiValuationExpanded)}
@@ -799,7 +1059,9 @@ HOLD with a 12-month price target of $165.20`);
                               {label}
                             </td>
                             {mockData.headers.map((year, yearIndex) => {
-                              const value = tableData[key][year];
+                              // Safely access the value with fallbacks
+                              const valueObj = tableData[key] || {};
+                              const value = valueObj[year] || 0;
                               const isEditable = editable && yearIndex >= 6;
                               const formattedValue = format === 'percent' ? 
                                 value.toFixed(1) : 
@@ -835,12 +1097,12 @@ HOLD with a 12-month price target of $165.20`);
             {/* Variables Section with Collapse/Expand */}
             <div className="border-b">
               <button
-                onClick={() => setIsVariablesExpanded(!isVariablesExpanded)}
+                onClick={() => setIsAiValuationExpanded(!isAiValuationExpanded)}
                 className="w-full p-4 flex justify-between items-center hover:bg-gray-50"
               >
                 <h4 className="text-sm font-medium text-gray-900">Variables</h4>
                 <svg
-                  className={`w-5 h-5 transform transition-transform ${isVariablesExpanded ? 'rotate-180' : ''}`}
+                  className={`w-5 h-5 transform transition-transform ${isAiValuationExpanded ? 'rotate-180' : ''}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -849,7 +1111,7 @@ HOLD with a 12-month price target of $165.20`);
                 </svg>
               </button>
               
-              {isVariablesExpanded && (
+              {isAiValuationExpanded && (
                 <div className="p-6">
                   <div className="grid grid-cols-3 gap-4">
                     {Object.entries(valuationVars).map(([key, value]) => (
@@ -880,10 +1142,10 @@ HOLD with a 12-month price target of $165.20`);
               </button>
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting}
+                disabled={isGenerating}
                 className="inline-flex justify-center py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
-                {isSubmitting ? 'Submitting...' : 'Submit'}
+                {isGenerating ? 'Submitting...' : 'Submit'}
               </button>
             </div>
 
@@ -893,15 +1155,15 @@ HOLD with a 12-month price target of $165.20`);
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Enterprise Value</span>
-                  <span className="text-sm font-medium">{formatLargeNumber(enterpriseValue).formatted}</span>
+                  <span className="text-sm font-medium">{enterpriseValue ? formatLargeNumber(enterpriseValue).formatted : 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Equity Value</span>
-                  <span className="text-sm font-medium">{formatLargeNumber(equityValue).formatted}</span>
+                  <span className="text-sm font-medium">{equityValue ? formatLargeNumber(equityValue).formatted : 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Price per Share</span>
-                  <span className="text-sm font-medium">${pricePerShare.toFixed(2)}</span>
+                  <span className="text-sm font-medium">{pricePerShare ? `$${pricePerShare.toFixed(2)}` : 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Upside/Downside</span>
@@ -1215,6 +1477,254 @@ HOLD with a 12-month price target of $165.20`);
           </div>
         </div>
       </div>
+
+      {/* Save Scenario Modal */}
+      {showSaveModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Save Scenario</h3>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="scenarioName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Scenario Name *
+                </label>
+                <input
+                  type="text"
+                  id="scenarioName"
+                  value={scenarioName}
+                  onChange={(e) => setScenarioName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter scenario name"
+                />
+              </div>
+              <div>
+                <label htmlFor="scenarioDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                  Description (optional)
+                </label>
+                <textarea
+                  id="scenarioDescription"
+                  value={scenarioDescription}
+                  onChange={(e) => setScenarioDescription(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter scenario description"
+                  rows={3}
+                />
+              </div>
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  onClick={() => setShowSaveModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveScenario}
+                  disabled={!scenarioName.trim()}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Load Scenario Modal */}
+      {showLoadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Load Scenario</h3>
+              <button
+                onClick={() => setShowLoadModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {scenarios.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No saved scenarios found.</p>
+            ) : (
+              <div className="max-h-96 overflow-y-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {scenarios.map((scenario, index) => (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="px-4 py-3">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{scenario.name}</div>
+                            {scenario.description && (
+                              <div className="text-xs text-gray-500">{scenario.description}</div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500">
+                          {new Date(scenario.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3 text-right text-sm font-medium space-x-2">
+                          <button
+                            onClick={() => handleLoadScenario(scenario)}
+                            className="text-blue-600 hover:text-blue-900"
+                          >
+                            Load
+                          </button>
+                          <button
+                            onClick={() => handleShareScenario(scenario)}
+                            className="text-green-600 hover:text-green-900"
+                          >
+                            Share
+                          </button>
+                          <button
+                            onClick={() => handleDeleteScenario(index)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Share Scenario Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Share Scenario</h3>
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Custom Message Input */}
+              <div>
+                <label htmlFor="shareMessage" className="block text-sm font-medium text-gray-700 mb-1">
+                  Custom Message
+                </label>
+                <textarea
+                  id="shareMessage"
+                  value={shareMessage}
+                  onChange={(e) => setShareMessage(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Add a custom message about your scenario"
+                  rows={2}
+                />
+              </div>
+              
+              <p className="text-sm text-gray-600">
+                Share this link with others to let them view your scenario:
+              </p>
+              <div className="flex">
+                <input
+                  type="text"
+                  readOnly
+                  value={shareLink}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-l-md bg-gray-50 focus:outline-none"
+                />
+                <button
+                  onClick={copyToClipboard}
+                  className="px-3 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700"
+                >
+                  {copySuccess ? (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              {copySuccess && (
+                <p className="text-sm text-green-600">Link copied to clipboard!</p>
+              )}
+              
+              {/* Social Media Sharing Options */}
+              <div className="mt-4">
+                <p className="text-sm font-medium text-gray-700 mb-2">Share directly to:</p>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareMessage)}`, '_blank')}
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1DA1F2] text-white hover:bg-opacity-90"
+                    aria-label="Share on Twitter"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723 10.054 10.054 0 01-3.127 1.195 4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareLink)}`, '_blank')}
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-[#0A66C2] text-white hover:bg-opacity-90"
+                    aria-label="Share on LinkedIn"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareLink)}&quote=${encodeURIComponent(shareMessage)}`, '_blank')}
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1877F2] text-white hover:bg-opacity-90"
+                    aria-label="Share on Facebook"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => window.open(`mailto:?subject=${encodeURIComponent(`${params.symbol} Valuation Scenario`)}&body=${encodeURIComponent(`${shareMessage}\n\n${shareLink}`)}`, '_blank')}
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-500 text-white hover:bg-opacity-90"
+                    aria-label="Share via Email"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              {/* QR Code Option */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <button 
+                  onClick={() => {
+                    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(shareLink)}`;
+                    window.open(qrCodeUrl, '_blank');
+                  }}
+                  className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 3h6v6H3V3zm2 2v2h2V5H5zm8-2h6v6h-6V3zm2 2v2h2V5h-2zM3 11h6v6H3v-6zm2 2v2h2v-2H5zm13-2h3v2h-3v-2zm-5 2h2v2h-2v-2zm2 4h2v2h-2v-2zm2-4h2v4h-2v-4z" />
+                  </svg>
+                  Generate QR Code
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </StockLayout>
   );
 } 

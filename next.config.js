@@ -9,8 +9,17 @@ const nextConfig = {
         hostname: 'www.reuters.com',
         pathname: '/resizer/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cloudfront-us-east-2.images.arcpublishing.com',
+        pathname: '**',
+      },
     ],
-    domains: ['images.unsplash.com'],
   },
 }
 

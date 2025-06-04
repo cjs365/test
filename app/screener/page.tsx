@@ -36,6 +36,20 @@ const savedScreens = [
     country: 'US',
     sector: 'technology',
   },
+  {
+    id: 3,
+    name: 'Complex Quality Screen',
+    description: 'Multi-factor screen for quality stocks',
+    criteria: [
+      { metric: 'P/E Ratio' as MetricType, operator: 'less_than' as Operator, value1: 25 },
+      { metric: 'Dividend Yield' as MetricType, operator: 'greater_than' as Operator, value1: 2 },
+      { metric: 'Revenue Growth' as MetricType, operator: 'greater_than' as Operator, value1: 10 },
+      { metric: 'Beta' as MetricType, operator: 'less_than' as Operator, value1: 1.2 },
+      { metric: 'Market Cap' as MetricType, operator: 'greater_than' as Operator, value1: 500 },
+    ] as Criterion[],
+    country: 'US',
+    sector: null,
+  },
 ];
 
 // Column configurations
@@ -91,6 +105,43 @@ const mockResults: ScreenerResult[] = [
   },
 ];
 
+// Utility function to format a criterion for display
+const formatCriterion = (criterion: Criterion): string => {
+  const { metric, operator, value1, value2 } = criterion;
+  
+  switch (operator) {
+    case 'equal':
+      return `${metric} = ${value1}`;
+    case 'not_equal':
+      return `${metric} ≠ ${value1}`;
+    case 'greater_than':
+      return `${metric} > ${value1}`;
+    case 'greater_than_equal':
+      return `${metric} ≥ ${value1}`;
+    case 'less_than':
+      return `${metric} < ${value1}`;
+    case 'less_than_equal':
+      return `${metric} ≤ ${value1}`;
+    case 'between':
+      return `${metric} between ${value1} and ${value2}`;
+    default:
+      return `${metric} ${value1}`;
+  }
+};
+
+// Utility function to format criteria list with limit
+const formatCriteriaList = (criteria: Criterion[], limit: number = 3): string => {
+  if (!criteria || criteria.length === 0) return "No criteria";
+  
+  const formattedCriteria = criteria.slice(0, limit).map(formatCriterion);
+  
+  if (criteria.length > limit) {
+    return formattedCriteria.join(" · ") + " · ...";
+  }
+  
+  return formattedCriteria.join(" · ");
+};
+
 export default function ScreenerPage() {
   const [country, setCountry] = useState('US');
   const [sector, setSector] = useState<string | null>(null);
@@ -119,6 +170,18 @@ export default function ScreenerPage() {
     setCountry(screen.country);
     setSector(screen.sector);
     setCriteria(screen.criteria);
+  };
+
+  // Adapter functions for UniverseSelector
+  const handleCountryChange = (countries: string[]) => {
+    // Take the first country or default to 'US'
+    setCountry(countries[0] || 'US');
+  };
+
+  const handleSectorChange = (sectors: string[]) => {
+    // If 'all' is selected or no sectors, set to null
+    // Otherwise take the first selected sector
+    setSector(sectors.includes('all') || sectors.length === 0 ? null : sectors[0]);
   };
 
   const handleGenerateFromAI = () => {
@@ -228,8 +291,8 @@ export default function ScreenerPage() {
               </TabsList>
               <TabsContent value="filters" className="mt-2 p-3">
                 <UniverseSelector
-                  onCountryChange={setCountry}
-                  onSectorChange={setSector}
+                  onCountryChange={handleCountryChange}
+                  onSectorChange={handleSectorChange}
                 />
               </TabsContent>
               <TabsContent value="saved" className="mt-2 p-3">
@@ -244,7 +307,7 @@ export default function ScreenerPage() {
                     >
                       <h3 className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{screen.name}</h3>
                       <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {screen.description}
+                        {formatCriteriaList(screen.criteria)}
                       </p>
                     </div>
                   ))}

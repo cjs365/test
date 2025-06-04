@@ -1,23 +1,29 @@
-import type { Metadata } from 'next';
+'use client';
+
 import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import { ThemeProvider } from './context/ThemeProvider';
+import { useState, useEffect } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
-
-export const metadata: Metadata = {
-  title: 'ClarVal - Professional Stock Analysis',
-  description: 'Professional stock analysis and portfolio management tools for individual investors.',
-};
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [mounted, setMounted] = useState(false);
+
+  // Set mounted to true on client-side
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <title>ClarVal - Professional Stock Analysis</title>
+        <meta name="description" content="Professional stock analysis and portfolio management tools for individual investors." />
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -27,7 +33,14 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          {/* Only render children when mounted to prevent hydration mismatch */}
+          {mounted ? children : 
+            <div style={{ visibility: 'hidden' }}>
+              {children}
+            </div>
+          }
+        </ThemeProvider>
       </body>
     </html>
   );
