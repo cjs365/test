@@ -1,6 +1,7 @@
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import Link from 'next/link';
 
 interface StockLayoutProps {
   children: React.ReactNode;
@@ -26,7 +27,7 @@ export function StockLayout({
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-8">
-              <a href="/" className="text-xl font-bold">ClarVal</a>
+              <Link href="/" className="text-xl font-bold">ClarVal</Link>
               <div className="hidden md:flex space-x-4">
                 <a href="#" className="hover:text-gray-300">Markets</a>
                 <a href="#" className="hover:text-gray-300">Economics</a>
