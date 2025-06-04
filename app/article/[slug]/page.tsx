@@ -11,9 +11,10 @@ type Props = {
 };
 
 export default function ArticlePage({ params }: Props) {
-  // Mock data - in real app would come from API/CMS
+  // Mock data - in real app would come from API/CMS based on params.slug
   const article = {
     title: "Google Says It Will Appeal Online Search Antitrust Decision",
+    slug: params.slug,
     author: "Reuters Staff",
     publishDate: "March 25, 2024, 11:42 AM",
     category: "Technology",

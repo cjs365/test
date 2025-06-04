@@ -363,7 +363,7 @@ const ModelPortfolios: React.FC = () => {
     : selectedPortfolio.holdings.slice(0, 6); // Show first 6 holdings (2 rows of 3)
 
   return (
-    <div>
+    <div className={theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}>
       {/* Portfolio Selection Buttons - Row above chart */}
       <div className="mb-4 flex flex-wrap gap-2">
         {mockModelPortfoliosData.map((portfolio) => (
@@ -557,6 +557,18 @@ export default function HomePage() {
                 </div>
               </Link>
             </div>
+          </section>
+
+          {/* Stock Table Section */}
+          <section className={`${
+            theme === 'dark' ? 'border-b border-gray-800' : 'border-b border-gray-200'
+          } px-8 py-6`}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className={`text-sm font-bold uppercase tracking-wider ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+              }`}>Market Overview</h2>
+            </div>
+            <StockTable />
           </section>
 
           {/* Featured Analysis Section */}
@@ -767,19 +779,19 @@ export default function HomePage() {
                       theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                     }`}>
                       <span className="font-mono mr-2">•</span>
-                      Revenue Growth {'>'}25% YoY
+                      Revenue Growth &gt;25% YoY
                     </div>
                     <div className={`flex items-center ${
                       theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                     }`}>
                       <span className="font-mono mr-2">•</span>
-                      Operating Margin {'>'}15%
+                      Operating Margin &gt;15%
                     </div>
                     <div className={`flex items-center ${
                       theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                     }`}>
                       <span className="font-mono mr-2">•</span>
-                      ROIC {'>'}20%
+                      ROIC &gt;20%
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
@@ -829,7 +841,7 @@ export default function HomePage() {
                       theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                     }`}>
                       <span className="font-mono mr-2">•</span>
-                      Yield {'>'} 2.5% • Payout {'<'} 75%
+                      Yield &gt; 2.5% • Payout &lt; 75%
                     </div>
                     <div className={`flex items-center ${
                       theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
@@ -879,19 +891,19 @@ export default function HomePage() {
                       theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                     }`}>
                       <span className="font-mono mr-2">•</span>
-                      P/E {'<'} 15x • P/B {'<'} 2x
+                      P/E &lt; 15x • P/B &lt; 2x
                     </div>
                     <div className={`flex items-center ${
                       theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                     }`}>
                       <span className="font-mono mr-2">•</span>
-                      FCF Yield {'>'} 6%
+                      FCF Yield &gt; 6%
                     </div>
                     <div className={`flex items-center ${
                       theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                     }`}>
                       <span className="font-mono mr-2">•</span>
-                      Net Margin {'>'} 12%
+                      Net Margin &gt; 12%
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
@@ -1179,16 +1191,22 @@ export default function HomePage() {
                 <Button
                   variant="default"
                   size="sm"
+                  onClick={() => setMarketRegion('US')}
                 >
                   US
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={() => setMarketRegion('CN')}
                 >
                   CN
                 </Button>
               </div>
+            </div>
+            {/* Display content based on marketRegion */}
+            <div className="text-xs mb-2">
+              Selected Region: {marketRegion}
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">

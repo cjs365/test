@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Button } from '@/app/components/ui/button';
 import { useTheme } from '@/app/context/ThemeProvider';
 import { Input } from '@/app/components/ui/input';
 import {
@@ -10,9 +9,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Check, ChevronDown, InfoIcon, X, Search } from "lucide-react";
+import { Check, InfoIcon, X, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/app/lib/utils";
 
 const countries = [
   { value: 'all', label: 'All Countries' },

@@ -166,6 +166,9 @@ export default function ScreenerPage() {
 
   const isDark = theme === 'dark';
 
+  // Display the current filter settings in the UI
+  const currentFilters = `${country}${sector ? ` | ${sector}` : ''}`;
+
   const handleLoadScreen = (screen: typeof savedScreens[0]) => {
     setCountry(screen.country);
     setSector(screen.sector);
@@ -243,6 +246,9 @@ export default function ScreenerPage() {
           <div className="flex justify-between items-center">
             <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Stock Screener</h1>
             <div className="flex items-center gap-2">
+              <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'} mr-4`}>
+                Current Filters: {currentFilters}
+              </div>
               <Button 
                 size="sm" 
                 variant="outline" 
