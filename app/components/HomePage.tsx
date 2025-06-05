@@ -155,193 +155,6 @@ const mockModelPortfoliosData = [
   }
 ];
 
-// StockTable component
-const StockTable: React.FC = () => {
-  const [numberFormat, setNumberFormat] = useState({
-    decimals: 1, // Default to 1 decimal
-    scale: 'M', // Default to millions
-  });
-  const { theme } = useTheme();
-
-  // Function to format numbers with commas and scale
-  const formatNumber = (value: number, isPrice: boolean = false) => {
-    let scaledValue = value;
-    let suffix = '';
-
-    if (!isPrice) {
-      switch (numberFormat.scale) {
-        case 'K':
-          scaledValue = value / 1000;
-          suffix = 'K';
-          break;
-        case 'M':
-          scaledValue = value / 1000000;
-          suffix = 'M';
-          break;
-        case 'B':
-          scaledValue = value / 1000000000;
-          suffix = 'B';
-          break;
-      }
-    }
-
-    const formatted = new Intl.NumberFormat('en-US', {
-      minimumFractionDigits: numberFormat.decimals,
-      maximumFractionDigits: numberFormat.decimals,
-    }).format(scaledValue);
-
-    return isPrice ? `$${formatted}` : `${formatted}${suffix}`;
-  };
-
-  return (
-    <div>
-      <div className="flex items-start gap-1 mb-4">
-        {/* Decimal Places Toggle Group */}
-        <div className={`inline-flex border rounded-md overflow-hidden ${
-          theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-        }`}>
-          <button
-            type="button"
-            onClick={() => setNumberFormat(prev => ({ ...prev, decimals: 0 }))}
-            className={`px-3 py-1 text-xs font-medium ${
-              numberFormat.decimals === 0
-                ? theme === 'dark' 
-                  ? 'bg-gray-700 text-gray-200' 
-                  : 'bg-white text-gray-900'
-                : theme === 'dark'
-                  ? 'bg-gray-800 text-gray-400'
-                  : 'bg-gray-50 text-gray-500'
-            } border-r ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} hover:bg-gray-100 focus:outline-none`}
-          >
-            .0
-          </button>
-          <button
-            type="button"
-            onClick={() => setNumberFormat(prev => ({ ...prev, decimals: 2 }))}
-            className={`px-3 py-1 text-xs font-medium ${
-              numberFormat.decimals === 2
-                ? theme === 'dark' 
-                  ? 'bg-gray-700 text-gray-200' 
-                  : 'bg-white text-gray-900'
-                : theme === 'dark'
-                  ? 'bg-gray-800 text-gray-400'
-                  : 'bg-gray-50 text-gray-500'
-            } hover:bg-gray-100 focus:outline-none`}
-          >
-            .00
-          </button>
-        </div>
-
-        {/* Scale Toggle Group */}
-        <div className={`inline-flex border rounded-md overflow-hidden ${
-          theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-        }`}>
-          <button
-            type="button"
-            onClick={() => setNumberFormat(prev => ({ ...prev, scale: 'K' }))}
-            className={`px-3 py-1 text-xs font-medium ${
-              numberFormat.scale === 'K'
-                ? theme === 'dark' 
-                  ? 'bg-gray-700 text-gray-200' 
-                  : 'bg-white text-gray-900'
-                : theme === 'dark'
-                  ? 'bg-gray-800 text-gray-400'
-                  : 'bg-gray-50 text-gray-500'
-            } border-r ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} hover:bg-gray-100 focus:outline-none`}
-          >
-            K
-          </button>
-          <button
-            type="button"
-            onClick={() => setNumberFormat(prev => ({ ...prev, scale: 'M' }))}
-            className={`px-3 py-1 text-xs font-medium ${
-              numberFormat.scale === 'M'
-                ? theme === 'dark' 
-                  ? 'bg-gray-700 text-gray-200' 
-                  : 'bg-white text-gray-900'
-                : theme === 'dark'
-                  ? 'bg-gray-800 text-gray-400'
-                  : 'bg-gray-50 text-gray-500'
-            } border-r ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'} hover:bg-gray-100 focus:outline-none`}
-          >
-            M
-          </button>
-          <button
-            type="button"
-            onClick={() => setNumberFormat(prev => ({ ...prev, scale: 'B' }))}
-            className={`px-3 py-1 text-xs font-medium ${
-              numberFormat.scale === 'B'
-                ? theme === 'dark' 
-                  ? 'bg-gray-700 text-gray-200' 
-                  : 'bg-white text-gray-900'
-                : theme === 'dark'
-                  ? 'bg-gray-800 text-gray-400'
-                  : 'bg-gray-50 text-gray-500'
-            } hover:bg-gray-100 focus:outline-none`}
-          >
-            B
-          </button>
-        </div>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className={`text-left border-b ${
-              theme === 'dark' ? 'border-gray-700 text-gray-400' : 'border-gray-200'
-            }`}>
-              <th className="py-3">Symbol</th>
-              <th>Company</th>
-              <th>Price</th>
-              <th>Change</th>
-              <th>% Change</th>
-              <th>Volume</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className={`border-b ${
-              theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-            }`}>
-              <td className="py-3"><span className={`ticker-badge ${
-                theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-black text-white'
-              }`}>AAPL</span></td>
-              <td className={theme === 'dark' ? 'text-gray-300' : ''}>Apple Inc.</td>
-              <td className={theme === 'dark' ? 'text-gray-300' : ''}>{formatNumber(178.14, true)}</td>
-              <td className={theme === 'dark' ? 'text-green-400' : 'positive'}>+{formatNumber(4.86)}</td>
-              <td className={theme === 'dark' ? 'text-green-400' : 'positive'}>+2.81%</td>
-              <td className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>{formatNumber(68200000)}</td>
-            </tr>
-            <tr className={`border-b ${
-              theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-            }`}>
-              <td className="py-3"><span className={`ticker-badge ${
-                theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-black text-white'
-              }`}>MSFT</span></td>
-              <td className={theme === 'dark' ? 'text-gray-300' : ''}>Microsoft Corp.</td>
-              <td className={theme === 'dark' ? 'text-gray-300' : ''}>{formatNumber(412.65, true)}</td>
-              <td className={theme === 'dark' ? 'text-green-400' : 'positive'}>+{formatNumber(3.27)}</td>
-              <td className={theme === 'dark' ? 'text-green-400' : 'positive'}>+0.80%</td>
-              <td className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>{formatNumber(22100000)}</td>
-            </tr>
-            <tr className={`border-b ${
-              theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-            }`}>
-              <td className="py-3"><span className={`ticker-badge ${
-                theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-black text-white'
-              }`}>TSLA</span></td>
-              <td className={theme === 'dark' ? 'text-gray-300' : ''}>Tesla Inc.</td>
-              <td className={theme === 'dark' ? 'text-gray-300' : ''}>{formatNumber(215.32, true)}</td>
-              <td className={theme === 'dark' ? 'text-red-400' : 'negative'}>-{formatNumber(7.18)}</td>
-              <td className={theme === 'dark' ? 'text-red-400' : 'negative'}>-3.23%</td>
-              <td className={theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}>{formatNumber(125700000)}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-};
-
 // ModelPortfolios component
 const ModelPortfolios: React.FC = () => {
   const [selectedPortfolio, setSelectedPortfolio] = useState(mockModelPortfoliosData[0]);
@@ -559,18 +372,6 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* Stock Table Section */}
-          <section className={`${
-            theme === 'dark' ? 'border-b border-gray-800' : 'border-b border-gray-200'
-          } px-8 py-6`}>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className={`text-sm font-bold uppercase tracking-wider ${
-                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-              }`}>Market Overview</h2>
-            </div>
-            <StockTable />
-          </section>
-
           {/* Featured Analysis Section */}
           <section className={`${
             theme === 'dark' ? 'border-b border-gray-800' : 'border-b border-gray-200'
@@ -654,9 +455,13 @@ export default function HomePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {['WMT', 'IGM', 'AAPL', 'MSFT'].map((symbol) => (
-                <div key={symbol} className={`company-report-card ${
-                  theme === 'dark' ? 'bg-gray-800 border border-gray-700' : ''
-                } p-4 rounded-lg`}>
+                <Link 
+                  key={symbol} 
+                  href={`/stock/${symbol.toLowerCase()}`} 
+                  className={`company-report-card ${
+                    theme === 'dark' ? 'bg-gray-800 border border-gray-700' : ''
+                  } p-4 rounded-lg block hover:shadow-md transition-shadow cursor-pointer`}
+                >
                   <div className="flex justify-between items-center mb-2">
                     <div className={`ticker-badge px-2 py-1 ${
                       theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-800'
@@ -731,14 +536,7 @@ export default function HomePage() {
                       } positive`}>+28.5%</div>
                     </div>
                   </div>
-                  <div className="flex justify-center mt-3">
-                    <a href="#" className={`text-xs font-medium uppercase tracking-wider ${
-                      theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
-                    }`}>
-                      View All
-                    </a>
-                  </div>
-                </div>
+                </Link>
               ))}
             </div>
           </section>

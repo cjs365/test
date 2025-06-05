@@ -17,10 +17,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const navItems = [
     { name: 'Equities', path: '/stock' },
     { name: 'Screener', path: '/screener' },
+    { name: 'Industry', path: '/industry' },
+    { name: 'Portfolio', path: '/portfolio' },
     { name: 'Charting', path: '/charting' },
-    { name: 'Tech', path: '/tech' },
-    { name: 'Politics', path: '/politics' },
-    { name: 'Businessweek', path: '/businessweek' },
+    { name: 'Analysis', path: '/analysis' },
+    { name: 'News', path: '/news' },
+    { name: 'Economy', path: '/economy' },
     { name: 'Opinion', path: '/opinion' }
   ];
 

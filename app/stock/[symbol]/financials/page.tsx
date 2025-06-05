@@ -186,7 +186,7 @@ export default function FinancialsPage({ params }: { params: { symbol: string } 
   };
 
   return (
-    <StockLayout symbol={params.symbol} companyName="Apple Inc.">
+    <StockLayout symbol={params.symbol} companyName="Apple Inc." sector="Technology" country="United States">
       <div className="grid grid-cols-12 min-h-screen bg-white">
         {/* Main Content Area */}
         <div className="col-span-9 border-r">
@@ -360,8 +360,10 @@ export default function FinancialsPage({ params }: { params: { symbol: string } 
                         key={year}
                         className={`px-4 py-2 text-right text-xs font-medium w-24 border-b ${
                           forecastYears.includes(year)
-                            ? 'text-[#D97706] bg-[#FEF3C7]'
+                            ? 'text-blue-700 bg-blue-50'
                             : 'text-gray-900 bg-white'
+                        } ${
+                          year === forecastYears[0] ? 'border-l-2 border-l-blue-700' : ''
                         }`}
                       >
                         {year}
@@ -386,8 +388,10 @@ export default function FinancialsPage({ params }: { params: { symbol: string } 
                           key={year}
                           className={`px-4 py-2 text-right text-xs border-b ${
                             forecastYears.includes(year) 
-                              ? 'bg-[#FEF3C7] text-[#D97706]' 
+                              ? 'bg-blue-50 text-blue-700' 
                               : 'text-gray-600'
+                          } ${
+                            year === forecastYears[0] ? 'border-l-2 border-l-blue-700' : ''
                           } ${metric.isBold ? 'font-medium' : ''}`}
                         >
                           {formatValue(metric.values[year])}

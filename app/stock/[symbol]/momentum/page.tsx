@@ -63,6 +63,8 @@ export default function MomentumPage({ params }: { params: { symbol: string } })
     <StockLayout 
       symbol={params.symbol}
       companyName={mockCompanyData.name}
+      sector="Technology"
+      country="United States"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Main Content (8 columns) */}

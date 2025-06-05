@@ -132,12 +132,15 @@ export default function StockOverviewPage({ params }: Props) {
     description: 'Apple designs a wide variety of consumer electronic devices, including smartphones (iPhone), tablets (iPad), PCs (Mac), smartwatches (Apple Watch), and TV boxes (Apple TV), among others. The iPhone makes up the majority of Apple\'s total revenue. In addition, Apple offers its customers a variety of services such as Apple Music, iCloud, Apple Care, Apple TV+, Apple Arcade, Apple Card, and Apple Pay, among others.',
     sector: 'Technology',
     industry: 'Consumer Electronics',
+    country: 'United States',
   };
 
   return (
     <StockLayout 
       symbol={mockCompanyData.symbol} 
       companyName={mockCompanyData.name}
+      sector={mockCompanyData.sector}
+      country={mockCompanyData.country}
     >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Main Content */}
@@ -309,24 +312,6 @@ export default function StockOverviewPage({ params }: Props) {
 
         {/* Right Column */}
         <div className="space-y-6">
-          {/* Company Profile */}
-          <section className="pb-6 border-b">
-            <h2 className="text-sm font-bold uppercase tracking-wider mb-4">Company Profile</h2>
-            <div className="space-y-4">
-              <div className="flex gap-4 text-xs">
-                <span className="font-medium text-gray-500">Sector:</span>
-                <span>{mockCompanyData.sector}</span>
-              </div>
-              <div className="flex gap-4 text-xs">
-                <span className="font-medium text-gray-500">Industry:</span>
-                <span>{mockCompanyData.industry}</span>
-              </div>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {mockCompanyData.description}
-              </p>
-            </div>
-          </section>
-
           {/* Trading Information */}
           <section className="pb-6 border-b">
             <h2 className="text-sm font-bold uppercase tracking-wider mb-4">Trading Information</h2>

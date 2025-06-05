@@ -172,6 +172,8 @@ export default function StockOperationPage({ params }: Props) {
     <StockLayout 
       symbol={mockCompanyData.symbol} 
       companyName={mockCompanyData.name}
+      sector="Technology"
+      country="United States"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Main Content - Split into two columns */}

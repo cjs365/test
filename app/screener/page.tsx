@@ -274,52 +274,86 @@ export default function ScreenerPage() {
         </div>
 
         <div className="flex gap-4">
-          {/* Left Column - Universe and Saved Screens */}
-          <div className={`w-[280px] rounded ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-            <Tabs defaultValue="filters" className="w-full">
-              <TabsList className={`w-full grid grid-cols-2 p-0 ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                <TabsTrigger 
-                  value="filters" 
-                  className={`rounded-none border-b-2 ${isDark 
-                    ? 'data-[state=active]:bg-gray-700 data-[state=active]:text-white data-[state=active]:border-blue-500 data-[state=inactive]:border-transparent' 
-                    : 'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:border-blue-600 data-[state=inactive]:border-transparent'}`}
-                >
-                  Universe
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="saved" 
-                  className={`rounded-none border-b-2 ${isDark 
-                    ? 'data-[state=active]:bg-gray-700 data-[state=active]:text-white data-[state=active]:border-blue-500 data-[state=inactive]:border-transparent' 
-                    : 'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:border-blue-600 data-[state=inactive]:border-transparent'}`}
-                >
-                  Saved
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="filters" className="mt-2 p-3">
-                <UniverseSelector
-                  onCountryChange={handleCountryChange}
-                  onSectorChange={handleSectorChange}
-                />
-              </TabsContent>
-              <TabsContent value="saved" className="mt-2 p-3">
-                <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {savedScreens.map((screen) => (
+          {/* Left Column - Universe and Saved/Featured Screens */}
+          <div className={`w-[280px] rounded ${isDark ? 'bg-gray-800' : 'bg-white'} flex flex-col`}>
+            {/* Universe Selector - Always visible */}
+            <div className="p-3">
+              <UniverseSelector
+                onCountryChange={handleCountryChange}
+                onSectorChange={handleSectorChange}
+              />
+            </div>
+            
+            {/* Divider */}
+            <div className={`border-t ${isDark ? 'border-gray-700' : 'border-gray-200'} my-2`}></div>
+            
+            {/* Saved/Featured Screens Tabs */}
+            <div className="flex-1">
+              <Tabs defaultValue="saved" className="w-full">
+                <TabsList className={`w-full grid grid-cols-2 p-0 ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                  <TabsTrigger 
+                    value="saved" 
+                    className={`rounded-none border-b-2 ${isDark 
+                      ? 'data-[state=active]:bg-gray-700 data-[state=active]:text-white data-[state=active]:border-blue-500 data-[state=inactive]:border-transparent' 
+                      : 'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:border-blue-600 data-[state=inactive]:border-transparent'}`}
+                  >
+                    Saved
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="featured" 
+                    className={`rounded-none border-b-2 ${isDark 
+                      ? 'data-[state=active]:bg-gray-700 data-[state=active]:text-white data-[state=active]:border-blue-500 data-[state=inactive]:border-transparent' 
+                      : 'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:border-blue-600 data-[state=inactive]:border-transparent'}`}
+                  >
+                    Featured
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="saved" className="mt-2 p-3">
+                  <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {savedScreens.map((screen) => (
+                      <div
+                        key={screen.id}
+                        className={`py-2 cursor-pointer transition-colors ${isDark 
+                          ? 'hover:bg-gray-700' 
+                          : 'hover:bg-gray-50'}`}
+                        onClick={() => handleLoadScreen(screen)}
+                      >
+                        <h3 className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{screen.name}</h3>
+                        <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                          {formatCriteriaList(screen.criteria)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </TabsContent>
+                <TabsContent value="featured" className="mt-2 p-3">
+                  <div className="divide-y divide-gray-200 dark:divide-gray-700">
                     <div
-                      key={screen.id}
                       className={`py-2 cursor-pointer transition-colors ${isDark 
                         ? 'hover:bg-gray-700' 
                         : 'hover:bg-gray-50'}`}
-                      onClick={() => handleLoadScreen(screen)}
+                      onClick={() => handleLoadScreen(savedScreens[2])}
                     >
-                      <h3 className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{screen.name}</h3>
+                      <h3 className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Quality Stocks</h3>
                       <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {formatCriteriaList(screen.criteria)}
+                        Multi-factor screen for high-quality companies
                       </p>
                     </div>
-                  ))}
-                </div>
-              </TabsContent>
-            </Tabs>
+                    <div
+                      className={`py-2 cursor-pointer transition-colors ${isDark 
+                        ? 'hover:bg-gray-700' 
+                        : 'hover:bg-gray-50'}`}
+                      onClick={() => handleLoadScreen(savedScreens[0])}
+                    >
+                      <h3 className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Dividend Champions</h3>
+                      <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                        High-yield stocks with sustainable payouts
+                      </p>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
           </div>
 
           {/* Right Column - Criteria and Results */}

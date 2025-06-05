@@ -414,6 +414,8 @@ export default function PeersPage({ params }: { params: { symbol: string } }) {
     <StockLayout 
       symbol={mockCompanyData.symbol}
       companyName={mockCompanyData.name}
+      sector="Technology"
+      country="United States"
     >
       <div className="grid grid-cols-8 gap-4 p-4">
         <div className="col-span-6">

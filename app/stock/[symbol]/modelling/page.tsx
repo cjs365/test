@@ -857,7 +857,7 @@ HOLD with a 12-month price target of $165.20`);
   }, [params.symbol]);
 
   return (
-    <StockLayout symbol={params.symbol} companyName="Apple Inc.">
+    <StockLayout symbol={params.symbol} companyName="Apple Inc." sector="Technology" country="United States">
       <div className="bg-white min-h-screen">
         <div className="grid grid-cols-12 gap-0">
           {/* Left Column - Assumptions and Variables */}
