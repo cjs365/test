@@ -203,14 +203,21 @@ export default function StockOperationPage({ params }: Props) {
     <section className="mb-6">
       <div className="flex justify-between items-center mb-1">
         <h3 className="text-xs font-semibold">{title}</h3>
-        <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4">
           <span className="text-xs text-gray-500">{viewMode === 'annual' ? '20Y Average: ' : 'TTM Average: '}{average}</span>
-          <div className="flex items-center gap-2 text-xs">
-            <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: color }}></span>
-            <span>Historical</span>
-            <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: estimateColor }}></span>
-            <span>Estimate</span>
-          </div>
+          {viewMode === 'annual' ? (
+            <div className="flex items-center gap-2 text-xs">
+              <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: color }}></span>
+              <span>Historical</span>
+              <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: estimateColor }}></span>
+              <span>Estimate</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-xs">
+              <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: color }}></span>
+              <span>TTM Data</span>
+            </div>
+          )}
         </div>
       </div>
       <div className="h-52">
@@ -235,7 +242,7 @@ export default function StockOperationPage({ params }: Props) {
               {getDataForViewMode(annualData, ttmData).map((entry, index) => (
                 <Cell 
                   key={`cell-${index}`}
-                  fill={entry.isEstimate ? estimateColor : color}
+                  fill={viewMode === 'ttm' ? color : (entry.isEstimate ? estimateColor : color)}
                 />
               ))}
             </Bar>

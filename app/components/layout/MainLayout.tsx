@@ -169,7 +169,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
               <Link
                 key={item.path}
                 href={item.path}
-                className={`nav-link text-sm ${pathname === item.path ? 'active' : ''} ${
+                className={`nav-link text-sm ${pathname && pathname.startsWith(item.path) ? 'active' : ''} ${
                   theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-300 hover:text-white'
                 }`}
               >

@@ -138,11 +138,11 @@ export default function HoldingsTab() {
           <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'} mb-2`}>
             {currentHoldings.length} holdings
           </div>
-          <Card className={`${isDark ? 'bg-gray-800 border-gray-700' : ''}`}>
+          <Card className={`shadow-none border-0 ${isDark ? 'bg-gray-800' : ''}`}>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className={isDark ? 'border-gray-700' : ''}>
+                  <TableRow className={`${isDark ? 'border-gray-700' : ''} border-b`}>
                     <TableHead>Symbol</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Sector</TableHead>
@@ -154,8 +154,11 @@ export default function HoldingsTab() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {currentHoldings.map((holding) => (
-                    <TableRow key={holding.symbol} className={isDark ? 'border-gray-700' : ''}>
+                  {currentHoldings.map((holding, index) => (
+                    <TableRow 
+                      key={holding.symbol} 
+                      className={`${isDark ? 'border-gray-700' : ''} ${index !== currentHoldings.length - 1 ? 'border-b border-dashed' : 'border-0'}`}
+                    >
                       <TableCell className="font-medium">
                         <div className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-black text-white rounded">
                           {holding.symbol}
@@ -183,7 +186,7 @@ export default function HoldingsTab() {
         </div>
         
         <div>
-          <Card className={`p-4 ${isDark ? 'bg-gray-800 border-gray-700' : ''}`}>
+          <Card className={`p-4 shadow-none border-0 ${isDark ? 'bg-gray-800' : ''}`}>
             <h3 className={`text-base font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               Factor Exposure
             </h3>

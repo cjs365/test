@@ -68,7 +68,7 @@ export default function MomentumPage({ params }: { params: { symbol: string } })
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Main Content (8 columns) */}
-        <div className="lg:col-span-8 lg:border-r lg:pr-8">
+        <div className="lg:col-span-9 lg:pr-8">
           {/* Monthly Performance Chart */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
@@ -164,20 +164,85 @@ export default function MomentumPage({ params }: { params: { symbol: string } })
           </div>
         </div>
 
-        {/* Right Column (4 columns) */}
-        <div className="lg:col-span-4">
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Key Statistics</h2>
-            <div className="space-y-4">
-              {keyStats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="flex justify-between items-center py-2 border-b last:border-0"
-                >
-                  <span className="text-gray-600">{stat.label}</span>
-                  <span className="font-semibold">{stat.value}</span>
+        {/* Right Column (3 columns) */}
+        <div className="lg:col-span-3">
+          <div className="bg-white p-4 rounded-md shadow-sm">
+            <h3 className="text-xs font-semibold mb-3">Key Momentum Metrics</h3>
+            
+            <div className="space-y-3">
+              <div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">1M Return</span>
+                  <span className="text-xs font-medium">+4.2%</span>
                 </div>
-              ))}
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                  <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: '65%' }}></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">3M Return</span>
+                  <span className="text-xs font-medium">+12.8%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                  <div className="bg-green-500 h-1.5 rounded-full" style={{ width: '75%' }}></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">YTD Return</span>
+                  <span className="text-xs font-medium">+8.4%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                  <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: '60%' }}></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">1Y Return</span>
+                  <span className="text-xs font-medium">+42.1%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                  <div className="bg-yellow-500 h-1.5 rounded-full" style={{ width: '85%' }}></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Beta (3Y)</span>
+                  <span className="text-xs font-medium">1.15</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                  <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: '70%' }}></div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-6">
+              <h4 className="text-xs font-medium mb-2">Momentum Strengths</h4>
+              <ul className="text-xs text-gray-600 space-y-1">
+                <li>• Strong relative performance</li>
+                <li>• Positive price trend</li>
+                <li>• Above-average Sharpe ratio</li>
+                <li>• Consistent outperformance</li>
+                <li>• Favorable technical indicators</li>
+              </ul>
+            </div>
+            
+            <div className="mt-6 pt-4 border-t">
+              <h4 className="text-xs font-medium mb-2">Momentum Score</h4>
+              <div className="flex items-center">
+                <div className="text-lg font-bold">85</div>
+                <div className="text-xs text-gray-500 ml-2">/ 100</div>
+                <div className="ml-auto">
+                  <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full font-medium">
+                    Strong
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

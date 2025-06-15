@@ -417,7 +417,7 @@ export default function PortfolioPage() {
                                   <UITooltip>
                                     <TooltipTrigger asChild>
                                       <div className="relative">
-                                        <div className="text-xs text-gray-500 flex items-center">
+                                        <div className="text-xs text-gray-500 flex items-center justify-center">
                                           3Y <Info className="h-3 w-3 ml-0.5 inline" />
                                         </div>
                                         <div className={`text-sm font-medium ${portfolio.performance.threeYear.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
@@ -436,7 +436,7 @@ export default function PortfolioPage() {
                                   <UITooltip>
                                     <TooltipTrigger asChild>
                                       <div className="relative">
-                                        <div className="text-xs text-gray-500 flex items-center">
+                                        <div className="text-xs text-gray-500 flex items-center justify-center">
                                           5Y <Info className="h-3 w-3 ml-0.5 inline" />
                                         </div>
                                         <div className={`text-sm font-medium ${portfolio.performance.fiveYear.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
