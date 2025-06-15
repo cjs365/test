@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Do not re-run "npm run dev" after changes. I will re-run manually.

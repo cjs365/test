@@ -22,6 +22,7 @@ export default function StockLayout({ children, symbol, companyName, sector, cou
     { name: 'Operation', path: `/stock/${symbol}/operation` },
     { name: 'Valuation', path: `/stock/${symbol}/valuation` },
     { name: 'Momentum', path: `/stock/${symbol}/momentum` },
+    { name: 'Risk', path: `/stock/${symbol}/risk` },
     { name: 'Peers', path: `/stock/${symbol}/peers` },
     { name: 'Financials', path: `/stock/${symbol}/financials` },
     { name: 'Modelling', path: `/stock/${symbol}/modelling` },

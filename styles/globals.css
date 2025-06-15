@@ -350,11 +350,11 @@
 }
 
 .spikebar-container {
-  @apply flex items-end h-[30px] gap-[3px] relative;
+  @apply flex items-end h-[30px] gap-[1px] relative;
 }
 
 .spikebar {
-  @apply flex-1 bg-[var(--accent-color)] rounded-t;
+  @apply flex-1 bg-[var(--accent-color)];
 }
 
 .spikebar.forecast {

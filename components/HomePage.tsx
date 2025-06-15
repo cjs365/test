@@ -245,7 +245,7 @@ export default function HomePage() {
                     </div>
                     <div className="aroic-chart mb-3">
                       <div className="chart-label small">AROIC Trend (10Y + 2Y Forecast)</div>
-                      <div className="spikebar-container">
+                      <div className="spikebar-container flex items-end h-16 space-x-0.5">
                         {[...Array(12)].map((_, i) => (
                           <div
                             key={i}
@@ -285,7 +285,7 @@ export default function HomePage() {
                 <span>Chart of the Week</span>
                 <a href="#" className="view-all-btn">View Archive</a>
               </div>
-              <div className="chart-container">
+              <div className="chart-container bg-white">
                 <h5 className="text-lg font-semibold mb-2">
                   10-Year Treasury Yield vs. Economic Earnings Yield
                 </h5>

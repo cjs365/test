@@ -14,16 +14,29 @@ export default function RootLayout({
 }) {
   const [mounted, setMounted] = useState(false);
 
-  // Set mounted to true on client-side
   useEffect(() => {
     setMounted(true);
+
+    // Initialize stagewise toolbar in development mode only
+    if (process.env.NODE_ENV === 'development') {
+      import('@stagewise/toolbar').then(({ initToolbar }) => {
+        initToolbar({
+          plugins: []
+        });
+      }).catch(err => {
+        console.error('Failed to load stagewise toolbar:', err);
+      });
+    }
   }, []);
 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
         <title>ClarVal - Professional Stock Analysis</title>
-        <meta name="description" content="Professional stock analysis and portfolio management tools for individual investors." />
+        <meta
+          name="description"
+          content="Professional stock analysis and portfolio management tools for individual investors."
+        />
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -34,14 +47,13 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <ThemeProvider>
-          {/* Only render children when mounted to prevent hydration mismatch */}
-          {mounted ? children : 
-            <div style={{ visibility: 'hidden' }}>
-              {children}
-            </div>
-          }
+          {mounted ? (
+            children
+          ) : (
+            <div style={{ visibility: 'hidden' }}>{children}</div>
+          )}
         </ThemeProvider>
       </body>
     </html>
   );
-} 
+}

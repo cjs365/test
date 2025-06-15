@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import MainLayout from '@/app/components/layout/MainLayout';
 import { Card } from '@/components/ui/card';
@@ -215,35 +215,19 @@ const mockHoldingsData = [
 ];
 
 export default function PortfolioDetailPage() {
-  const params = useParams() || {};
-  const ticker = typeof params.ticker === 'string' ? params.ticker : '';
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const params = useParams() || {};
+  const ticker = typeof params.ticker === 'string' ? params.ticker : '';
   
-  // Find the portfolio that matches the URL ticker parameter
-  const portfolio = mockModelPortfolios.find(p => p.ticker.toLowerCase() === ticker.toLowerCase());
+  // Find the portfolio by ticker
+  const portfolio = mockModelPortfolios.find(p => p.ticker.toLowerCase() === ticker.toLowerCase()) || mockModelPortfolios[0];
   
-  if (!portfolio) {
-    return (
-      <MainLayout>
-        <div className="py-6">
-          <h1 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Portfolio Not Found
-          </h1>
-          <p>The requested portfolio could not be found.</p>
-        </div>
-      </MainLayout>
-    );
-  }
-  
-  // Prepare chart data for the overview
   const combinedChartData = portfolio.chartData.map((item, index) => ({
     year: item.year,
     portfolio: item.value,
     benchmark: portfolio.benchmarkData[index].value
   }));
-  
-  const [activeTab, setActiveTab] = useState('overview');
   
   return (
     <MainLayout>
@@ -275,163 +259,151 @@ export default function PortfolioDetailPage() {
           </div>
           
           <div className="portfolio-nav border-b mb-6">
-            <button 
-              onClick={() => setActiveTab('overview')}
-              className={`portfolio-nav-item ${activeTab === 'overview' ? 'active' : ''}`}
-            >
+            <button className="portfolio-nav-item active">
               Overview
             </button>
-            <button 
-              onClick={() => setActiveTab('performance')}
-              className={`portfolio-nav-item ${activeTab === 'performance' ? 'active' : ''}`}
-            >
+            <button className="portfolio-nav-item">
               Performance
             </button>
-            <button 
-              onClick={() => setActiveTab('holdings')}
-              className={`portfolio-nav-item ${activeTab === 'holdings' ? 'active' : ''}`}
-            >
+            <button className="portfolio-nav-item">
               Holdings
             </button>
           </div>
           
-          {activeTab === 'overview' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className={`p-4 ${isDark ? 'bg-gray-800 border-gray-700' : ''}`}>
-                <h2 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Portfolio Description
-                </h2>
-                <p className={`${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  {portfolio.description}
-                </p>
-                
-                <h3 className={`text-base font-semibold mt-4 mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Investment Strategy
-                </h3>
-                <ul className={`list-disc pl-5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  <li>Focus on {portfolio.category.toLowerCase()} companies with strong competitive advantages</li>
-                  <li>Emphasis on companies with sustainable growth trajectories</li>
-                  <li>Active management with quarterly rebalancing</li>
-                  <li>Rigorous fundamental analysis and valuation discipline</li>
-                  <li>Long-term investment horizon with low turnover</li>
-                </ul>
-              </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className={`p-4 ${isDark ? 'bg-gray-800 border-gray-700' : ''}`}>
+              <h2 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Portfolio Description
+              </h2>
+              <p className={`${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                {portfolio.description}
+              </p>
               
-              <Card className={`p-4 ${isDark ? 'bg-gray-800 border-gray-700' : ''}`}>
-                <h2 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Performance
-                </h2>
-                
-                <div className="h-[180px] mb-4">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={combinedChartData}>
-                      <XAxis 
-                        dataKey="year" 
-                        tickFormatter={(value) => String(value).substring(2)}
-                        tick={{ fontSize: 12 }}
-                      />
-                      <YAxis 
-                        tickFormatter={(value) => `${value}%`}
-                        tick={{ fontSize: 12 }}
-                      />
-                      <Tooltip 
-                        formatter={(value) => [`${value}%`, '']}
-                        labelFormatter={(value) => `Year: ${value}`}
-                      />
-                      <Legend />
-                      <Line
-                        type="monotone"
-                        dataKey="portfolio"
-                        name="Portfolio"
-                        stroke="#10b981"
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 6 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="benchmark"
-                        name="S&P 500"
-                        stroke="#6b7280"
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 6 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-                
-                <div className="overflow-x-auto mt-2">
-                  <table className={`w-full text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <thead>
-                      <tr className={`${isDark ? 'border-gray-700' : 'border-gray-200'} border-b`}>
-                        <th className="px-4 py-3 text-left">Period</th>
-                        <th className="px-4 py-3 text-right">1M</th>
-                        <th className="px-4 py-3 text-right">YTD</th>
-                        <th className="px-4 py-3 text-right">1Y</th>
-                        <th className="px-4 py-3 text-right">3Y</th>
-                        <th className="px-4 py-3 text-right">5Y</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className={`${isDark ? 'border-gray-700' : 'border-gray-200'} border-b`}>
-                        <td className="px-4 py-3 font-medium">Portfolio</td>
-                        <td className={`px-4 py-3 text-right ${portfolio.performance.oneMonth?.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
-                          {portfolio.performance.oneMonth || '+2.3%'}
-                        </td>
-                        <td className={`px-4 py-3 text-right ${portfolio.performance.ytd.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
-                          {portfolio.performance.ytd}
-                        </td>
-                        <td className={`px-4 py-3 text-right ${portfolio.performance.oneYear.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
-                          {portfolio.performance.oneYear}
-                        </td>
-                        <td className={`px-4 py-3 text-right ${portfolio.performance.threeYear.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
-                          {portfolio.performance.threeYear}
-                        </td>
-                        <td className={`px-4 py-3 text-right ${portfolio.performance.fiveYear.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
-                          {portfolio.performance.fiveYear}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-3 font-medium">Benchmark</td>
-                        <td className="px-4 py-3 text-right text-green-500">
-                          +1.8%
-                        </td>
-                        <td className="px-4 py-3 text-right text-green-500">
-                          +5.2%
-                        </td>
-                        <td className="px-4 py-3 text-right text-green-500">
-                          +12.4%
-                        </td>
-                        <td className="px-4 py-3 text-right text-green-500">
-                          +8.2%
-                        </td>
-                        <td className="px-4 py-3 text-right text-green-500">
-                          +9.5%
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+              <h3 className={`text-base font-semibold mt-4 mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Investment Strategy
+              </h3>
+              <ul className={`list-disc pl-5 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                <li>Focus on {portfolio.category.toLowerCase()} companies with strong competitive advantages</li>
+                <li>Emphasis on companies with sustainable growth trajectories</li>
+                <li>Active management with quarterly rebalancing</li>
+                <li>Rigorous fundamental analysis and valuation discipline</li>
+                <li>Long-term investment horizon with low turnover</li>
+              </ul>
+            </Card>
+            
+            <Card className={`p-4 ${isDark ? 'bg-gray-800 border-gray-700' : ''}`}>
+              <h2 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Performance
+              </h2>
+              
+              <div className="h-[180px] mb-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={combinedChartData}>
+                    <XAxis 
+                      dataKey="year" 
+                      tickFormatter={(value) => String(value).substring(2)}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis 
+                      tickFormatter={(value) => `${value}%`}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <Tooltip 
+                      formatter={(value) => [`${value}%`, '']}
+                      labelFormatter={(value) => `Year: ${value}`}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="portfolio"
+                      name="Portfolio"
+                      stroke="#10b981"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 6 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="benchmark"
+                      name="S&P 500"
+                      stroke="#6b7280"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              
+              <div className="overflow-x-auto mt-2">
+                <table className={`w-full text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <thead>
+                    <tr className={`${isDark ? 'border-gray-700' : 'border-gray-200'} border-b`}>
+                      <th className="px-4 py-3 text-left">Period</th>
+                      <th className="px-4 py-3 text-right">1M</th>
+                      <th className="px-4 py-3 text-right">YTD</th>
+                      <th className="px-4 py-3 text-right">1Y</th>
+                      <th className="px-4 py-3 text-right">3Y</th>
+                      <th className="px-4 py-3 text-right">5Y</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className={`${isDark ? 'border-gray-700' : 'border-gray-200'} border-b`}>
+                      <td className="px-4 py-3 font-medium">Portfolio</td>
+                      <td className={`px-4 py-3 text-right ${portfolio.performance.oneMonth?.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
+                        {portfolio.performance.oneMonth || '+2.3%'}
+                      </td>
+                      <td className={`px-4 py-3 text-right ${portfolio.performance.ytd.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
+                        {portfolio.performance.ytd}
+                      </td>
+                      <td className={`px-4 py-3 text-right ${portfolio.performance.oneYear.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
+                        {portfolio.performance.oneYear}
+                      </td>
+                      <td className={`px-4 py-3 text-right ${portfolio.performance.threeYear.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
+                        {portfolio.performance.threeYear}
+                      </td>
+                      <td className={`px-4 py-3 text-right ${portfolio.performance.fiveYear.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
+                        {portfolio.performance.fiveYear}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 font-medium">Benchmark</td>
+                      <td className="px-4 py-3 text-right text-green-500">
+                        +1.8%
+                      </td>
+                      <td className="px-4 py-3 text-right text-green-500">
+                        +5.2%
+                      </td>
+                      <td className="px-4 py-3 text-right text-green-500">
+                        +12.4%
+                      </td>
+                      <td className="px-4 py-3 text-right text-green-500">
+                        +8.2%
+                      </td>
+                      <td className="px-4 py-3 text-right text-green-500">
+                        +9.5%
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
-                <h2 className={`text-lg font-semibold mb-3 mt-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Top Holdings
-                </h2>
-                <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-                  {portfolio.holdings.slice(0, 6).map((symbol) => (
-                    <div key={symbol} className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg text-center">
-                      <div className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-black text-white rounded">
-                        {symbol}
-                      </div>
+              <h2 className={`text-lg font-semibold mb-3 mt-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Top Holdings
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                {portfolio.holdings.slice(0, 6).map((symbol) => (
+                  <div key={symbol} className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg text-center">
+                    <div className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-black text-white rounded">
+                      {symbol}
                     </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
-          )}
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
           
-          {activeTab === 'performance' && <PerformanceTab />}
-          {activeTab === 'holdings' && <HoldingsTab />}
+          {/* Remove conditional rendering of tabs */}
         </div>
       </div>
     </MainLayout>

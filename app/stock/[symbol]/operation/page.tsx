@@ -19,8 +19,8 @@ type Props = {
   };
 };
 
-// Mock data for the charts with historical and forecast data
-const mockAroicData = [
+// Mock data for the charts with historical and forecast data - Annual
+const mockAroicDataAnnual = [
   { year: '2004', value: 18.2 },
   { year: '2005', value: 19.5 },
   { year: '2006', value: 21.3 },
@@ -46,7 +46,25 @@ const mockAroicData = [
   { year: 'FY2', value: 37.2, isEstimate: true },
 ];
 
-const mockAssetGrowthData = [
+// Mock data for TTM view (quarterly data points)
+const mockAroicDataTTM = [
+  { year: 'Q1 2022', value: 35.8 },
+  { year: 'Q2 2022', value: 36.1 },
+  { year: 'Q3 2022', value: 36.5 },
+  { year: 'Q4 2022', value: 36.2 },
+  { year: 'Q1 2023', value: 35.9 },
+  { year: 'Q2 2023', value: 35.2 },
+  { year: 'Q3 2023', value: 34.9 },
+  { year: 'Q4 2023', value: 34.8 },
+  // Forecasts
+  { year: 'Q1 2024', value: 35.2, isEstimate: true },
+  { year: 'Q2 2024', value: 35.8, isEstimate: true },
+  { year: 'Q3 2024', value: 36.3, isEstimate: true },
+  { year: 'Q4 2024', value: 36.5, isEstimate: true },
+];
+
+// Annual data
+const mockAssetGrowthDataAnnual = [
   { year: '2019', value: 8.5 },
   { year: '2020', value: 7.2 },
   { year: '2021', value: 9.8 },
@@ -57,7 +75,25 @@ const mockAssetGrowthData = [
   { year: 'FY2', value: 12.8, isEstimate: true },
 ];
 
-const mockRevenueGrowthData = [
+// TTM data
+const mockAssetGrowthDataTTM = [
+  { year: 'Q1 2022', value: 10.1 },
+  { year: 'Q2 2022', value: 10.3 },
+  { year: 'Q3 2022', value: 10.4 },
+  { year: 'Q4 2022', value: 10.5 },
+  { year: 'Q1 2023', value: 10.7 },
+  { year: 'Q2 2023', value: 10.9 },
+  { year: 'Q3 2023', value: 11.0 },
+  { year: 'Q4 2023', value: 11.2 },
+  // Forecasts
+  { year: 'Q1 2024', value: 11.5, isEstimate: true },
+  { year: 'Q2 2024', value: 11.8, isEstimate: true },
+  { year: 'Q3 2024', value: 12.0, isEstimate: true },
+  { year: 'Q4 2024', value: 12.1, isEstimate: true },
+];
+
+// Annual data
+const mockRevenueGrowthDataAnnual = [
   { year: '2019', value: 12.5 },
   { year: '2020', value: 11.8 },
   { year: '2021', value: 14.2 },
@@ -68,7 +104,25 @@ const mockRevenueGrowthData = [
   { year: 'FY2', value: 18.2, isEstimate: true },
 ];
 
-const mockEarningsMarginData = [
+// TTM data
+const mockRevenueGrowthDataTTM = [
+  { year: 'Q1 2022', value: 15.0 },
+  { year: 'Q2 2022', value: 15.2 },
+  { year: 'Q3 2022', value: 15.4 },
+  { year: 'Q4 2022', value: 15.5 },
+  { year: 'Q1 2023', value: 15.9 },
+  { year: 'Q2 2023', value: 16.3 },
+  { year: 'Q3 2023', value: 16.6 },
+  { year: 'Q4 2023', value: 16.8 },
+  // Forecasts
+  { year: 'Q1 2024', value: 17.0, isEstimate: true },
+  { year: 'Q2 2024', value: 17.2, isEstimate: true },
+  { year: 'Q3 2024', value: 17.4, isEstimate: true },
+  { year: 'Q4 2024', value: 17.5, isEstimate: true },
+];
+
+// Annual data
+const mockEarningsMarginDataAnnual = [
   { year: '2019', value: 22.5 },
   { year: '2020', value: 21.8 },
   { year: '2021', value: 23.4 },
@@ -79,7 +133,25 @@ const mockEarningsMarginData = [
   { year: 'FY2', value: 26.5, isEstimate: true },
 ];
 
-const mockCapitalAllocationData = [
+// TTM data
+const mockEarningsMarginDataTTM = [
+  { year: 'Q1 2022', value: 23.8 },
+  { year: 'Q2 2022', value: 24.0 },
+  { year: 'Q3 2022', value: 24.1 },
+  { year: 'Q4 2022', value: 24.2 },
+  { year: 'Q1 2023', value: 24.5 },
+  { year: 'Q2 2023', value: 24.8 },
+  { year: 'Q3 2023', value: 25.0 },
+  { year: 'Q4 2023', value: 25.1 },
+  // Forecasts
+  { year: 'Q1 2024', value: 25.3, isEstimate: true },
+  { year: 'Q2 2024', value: 25.5, isEstimate: true },
+  { year: 'Q3 2024', value: 25.7, isEstimate: true },
+  { year: 'Q4 2024', value: 25.8, isEstimate: true },
+];
+
+// Annual data
+const mockCapitalAllocationDataAnnual = [
   { year: '2019', value: 35 },
   { year: '2020', value: 32 },
   { year: '2021', value: 38 },
@@ -90,14 +162,39 @@ const mockCapitalAllocationData = [
   { year: 'FY2', value: 39, isEstimate: true },
 ];
 
+// TTM data
+const mockCapitalAllocationDataTTM = [
+  { year: 'Q1 2022', value: 37 },
+  { year: 'Q2 2022', value: 36 },
+  { year: 'Q3 2022', value: 36 },
+  { year: 'Q4 2022', value: 36 },
+  { year: 'Q1 2023', value: 35 },
+  { year: 'Q2 2023', value: 35 },
+  { year: 'Q3 2023', value: 34 },
+  { year: 'Q4 2023', value: 34 },
+  // Forecasts
+  { year: 'Q1 2024', value: 35, isEstimate: true },
+  { year: 'Q2 2024', value: 36, isEstimate: true },
+  { year: 'Q3 2024', value: 36, isEstimate: true },
+  { year: 'Q4 2024', value: 37, isEstimate: true },
+];
+
 export default function StockOperationPage({ params }: Props) {
+  const [viewMode, setViewMode] = useState<'annual' | 'ttm'>('annual');
+  
   const mockCompanyData = {
     name: 'Apple Inc',
     symbol: params.symbol,
   };
 
+  // Get the appropriate data based on the view mode
+  const getDataForViewMode = (annualData: any[], ttmData: any[]) => {
+    return viewMode === 'annual' ? annualData : ttmData;
+  };
+
   const renderBarChart = (
-    data: any[],
+    annualData: any[],
+    ttmData: any[],
     title: string,
     average: string,
     color: string,
@@ -107,7 +204,7 @@ export default function StockOperationPage({ params }: Props) {
       <div className="flex justify-between items-center mb-1">
         <h3 className="text-xs font-semibold">{title}</h3>
         <div className="flex items-center gap-4">
-          <span className="text-xs text-gray-500">20Y Average: {average}</span>
+          <span className="text-xs text-gray-500">{viewMode === 'annual' ? '20Y Average: ' : 'TTM Average: '}{average}</span>
           <div className="flex items-center gap-2 text-xs">
             <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: color }}></span>
             <span>Historical</span>
@@ -118,12 +215,12 @@ export default function StockOperationPage({ params }: Props) {
       </div>
       <div className="h-52">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ left: 0 }}>
+          <BarChart data={getDataForViewMode(annualData, ttmData)} margin={{ left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis 
               dataKey="year" 
               tick={{ fontSize: 10 }}
-              interval={2}
+              interval={viewMode === 'annual' ? 2 : 1}
             />
             <YAxis 
               tickFormatter={(value) => `${value}%`}
@@ -135,7 +232,7 @@ export default function StockOperationPage({ params }: Props) {
               labelStyle={{ fontSize: 11 }}
             />
             <Bar dataKey="value">
-              {data.map((entry, index) => (
+              {getDataForViewMode(annualData, ttmData).map((entry, index) => (
                 <Cell 
                   key={`cell-${index}`}
                   fill={entry.isEstimate ? estimateColor : color}
@@ -181,24 +278,51 @@ export default function StockOperationPage({ params }: Props) {
           <div className="pb-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-sm font-bold uppercase tracking-wider">Quality Analysis</h2>
-              <div className="text-xs text-gray-500">Updated: Mar 15, 2024</div>
+              <div className="flex items-center gap-4">
+                {/* Toggle switch for Annual/TTM view */}
+                <div className="flex items-center bg-gray-100 rounded-lg p-0.5">
+                  <button
+                    onClick={() => setViewMode('annual')}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                      viewMode === 'annual'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Annual
+                  </button>
+                  <button
+                    onClick={() => setViewMode('ttm')}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                      viewMode === 'ttm'
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    TTM
+                  </button>
+                </div>
+                <div className="text-xs text-gray-500">Updated: Mar 15, 2024</div>
+              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Left Column */}
               <div>
                 {renderBarChart(
-                  mockAroicData,
+                  mockAroicDataAnnual,
+                  mockAroicDataTTM,
                   'Adjusted Return on Invested Capital (AROIC)',
-                  '28.4%',
+                  viewMode === 'annual' ? '28.4%' : '35.6%',
                   '#6B7280',  // Gray for historical
                   '#93C5FD'   // Light blue for estimates
                 )}
 
                 {renderBarChart(
-                  mockAssetGrowthData,
+                  mockAssetGrowthDataAnnual,
+                  mockAssetGrowthDataTTM,
                   'Asset Growth',
-                  '25.8%',
+                  viewMode === 'annual' ? '25.8%' : '10.8%',
                   '#4B5563',  // Darker gray for historical
                   '#60A5FA'   // Blue for estimates
                 )}
@@ -207,25 +331,28 @@ export default function StockOperationPage({ params }: Props) {
               {/* Right Column */}
               <div>
                 {renderBarChart(
-                  mockRevenueGrowthData,
+                  mockRevenueGrowthDataAnnual,
+                  mockRevenueGrowthDataTTM,
                   'Revenue Growth',
-                  '15.3%',
+                  viewMode === 'annual' ? '15.3%' : '15.8%',
                   '#374151',  // Even darker gray for historical
                   '#3B82F6'   // Darker blue for estimates
                 )}
 
                 {renderBarChart(
-                  mockEarningsMarginData,
+                  mockEarningsMarginDataAnnual,
+                  mockEarningsMarginDataTTM,
                   'Earnings Margin',
-                  '23.7%',
+                  viewMode === 'annual' ? '23.7%' : '24.4%',
                   '#1F2937',  // Almost black for historical
                   '#2563EB'   // Even darker blue for estimates
                 )}
 
                 {renderBarChart(
-                  mockCapitalAllocationData,
+                  mockCapitalAllocationDataAnnual,
+                  mockCapitalAllocationDataTTM,
                   'Capital Allocation',
-                  '35.2%',
+                  viewMode === 'annual' ? '35.2%' : '35.5%',
                   '#111827',  // Nearly black for historical
                   '#1D4ED8'   // Navy blue for estimates
                 )}
@@ -234,9 +361,87 @@ export default function StockOperationPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Right Column - Empty */}
+        {/* Right Column - Key Operation Metrics */}
         <div className="lg:col-span-3">
-          {/* Intentionally left empty to match financials page layout */}
+          <div className="bg-white p-4 rounded-md shadow-sm">
+            <h3 className="text-xs font-semibold mb-3">Key Operation Metrics</h3>
+            
+            <div className="space-y-3">
+              <div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">AROIC (TTM)</span>
+                  <span className="text-xs font-medium">34.8%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                  <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: '85%' }}></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Revenue Growth (YoY)</span>
+                  <span className="text-xs font-medium">16.8%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                  <div className="bg-green-500 h-1.5 rounded-full" style={{ width: '70%' }}></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Earnings Margin</span>
+                  <span className="text-xs font-medium">25.1%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                  <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: '75%' }}></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Asset Turnover</span>
+                  <span className="text-xs font-medium">0.78x</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                  <div className="bg-yellow-500 h-1.5 rounded-full" style={{ width: '60%' }}></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Industry Rank</span>
+                  <span className="text-xs font-medium">3 of 45</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                  <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: '95%' }}></div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-6">
+              <h4 className="text-xs font-medium mb-2">Operational Strengths</h4>
+              <ul className="text-xs text-gray-600 space-y-1">
+                <li>• Strong brand recognition</li>
+                <li>• Efficient supply chain management</li>
+                <li>• High customer retention rate</li>
+                <li>• Product innovation leadership</li>
+                <li>• Vertical integration advantages</li>
+              </ul>
+            </div>
+            
+            <div className="mt-6 pt-4 border-t">
+              <h4 className="text-xs font-medium mb-2">Quality Score</h4>
+              <div className="flex items-center">
+                <div className="text-lg font-bold">92</div>
+                <div className="text-xs text-gray-500 ml-2">/ 100</div>
+                <div className="ml-auto">
+                  <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded-full font-medium">
+                    Excellent
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </StockLayout>

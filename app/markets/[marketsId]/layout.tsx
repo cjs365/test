@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import MainLayout from '@/app/components/layout/MainLayout';
 
-type IndustryData = {
+type marketsData = {
   id: string;
   name: string;
   sectorName: string;
@@ -13,7 +13,7 @@ type IndustryData = {
   marketCap: string;
 };
 
-const mockIndustryData: Record<string, IndustryData> = {
+const mockmarketsData: Record<string, marketsData> = {
   'software': { id: 'software', name: 'Software', sectorName: 'Technology', companies: 328, marketCap: '$12.4T' },
   'semiconductors': { id: 'semiconductors', name: 'Semiconductors', sectorName: 'Technology', companies: 104, marketCap: '$4.8T' },
   'hardware': { id: 'hardware', name: 'Computer Hardware', sectorName: 'Technology', companies: 76, marketCap: '$3.2T' },
@@ -22,59 +22,70 @@ const mockIndustryData: Record<string, IndustryData> = {
   'banks': { id: 'banks', name: 'Banks', sectorName: 'Financial Services', companies: 245, marketCap: '$5.7T' },
 };
 
-export default function IndustryLayout({
+export default function MarketsLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
-  params: { industryId: string };
+  params: { marketsId: string };
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const industryId = params.industryId.toLowerCase();
+  const fullMarketsId = params.marketsId.toLowerCase();
   
-  const industryData = mockIndustryData[industryId] || {
-    id: industryId,
-    name: industryId.charAt(0).toUpperCase() + industryId.slice(1),
+  // Split the marketsId into country and actual market id
+  const [countryCode, ...marketIdParts] = fullMarketsId.split('_');
+  const marketId = marketIdParts.join('_'); // Rejoin in case market id itself contains underscores
+  
+  // Map country code to full name
+  const countryName = countryCode === 'us' ? 'United States' : 'Global';
+  
+  const marketsData = mockmarketsData[marketId] || {
+    id: marketId,
+    name: marketId.charAt(0).toUpperCase() + marketId.slice(1).replace(/-/g, ' '),
     sectorName: 'Unknown',
     companies: 0,
     marketCap: 'N/A'
   };
 
   const navItems = [
-    { name: 'Overview', path: `/industry/${industryId}/overview` },
-    { name: 'Performance', path: `/industry/${industryId}/performance` },
-    { name: 'Valuation', path: `/industry/${industryId}/valuation` },
-    { name: 'Companies', path: `/industry/${industryId}/companies` },
-    { name: 'Financials', path: `/industry/${industryId}/financials` },
+    { name: 'Overview', path: `/markets/${fullMarketsId}/overview` },
+    { name: 'Momentum', path: `/markets/${fullMarketsId}/momentum` },
+    { name: 'Valuation', path: `/markets/${fullMarketsId}/valuation` },
+    { name: 'Operation', path: `/markets/${fullMarketsId}/operation` },
+    { name: 'Peers', path: `/markets/${fullMarketsId}/peers` },
   ];
 
   useEffect(() => {
-    // Redirect to overview if on the base industry path
-    if (pathname === `/industry/${industryId}`) {
-      router.replace(`/industry/${industryId}/overview`, { scroll: false });
+    // Redirect to overview if on the base markets path
+    if (pathname === `/markets/${fullMarketsId}`) {
+      router.replace(`/markets/${fullMarketsId}/overview`, { scroll: false });
     }
-  }, [pathname, router, industryId]);
+  }, [pathname, router, fullMarketsId]);
 
   return (
     <MainLayout>
       <div className="min-h-screen">
         <div className="border-b">
-          {/* Industry Header */}
+          {/* markets Header */}
           <div className="container mx-auto px-4">
             <div className="py-6">
               <div className="flex items-baseline gap-3">
-                <h1 className="text-2xl font-bold">{industryData.name} Industry</h1>
+                <h1 className="text-2xl font-bold">{marketsData.name} Markets</h1>
                 <div className="flex items-center gap-2 ml-4">
-                  <span className="text-sm bg-gray-100 px-2 py-1 rounded">{industryData.companies} Companies</span>
-                  <span className="text-sm bg-gray-100 px-2 py-1 rounded">Market Cap: {industryData.marketCap}</span>
+                  <span className="text-sm bg-gray-100 px-2 py-1 rounded">{countryName}</span>
+                  <span className="text-sm bg-gray-100 px-2 py-1 rounded">{marketsData.companies} Companies</span>
+                  <span className="text-sm bg-gray-100 px-2 py-1 rounded">Market Cap: {marketsData.marketCap}</span>
                 </div>
                 <div className="ml-auto flex flex-col items-end">
                   <div className="text-xs text-gray-500">
                     Updated: {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </div>
                   <div className="flex gap-2 mt-2">
-                    <select className="text-sm border rounded px-2 py-1">
+                    <select 
+                      className="text-sm border rounded px-2 py-1"
+                      defaultValue={countryCode === 'us' ? 'us' : 'global'}
+                    >
                       <option value="global">Global</option>
                       <option value="us">United States</option>
                       <option value="europe">Europe</option>
@@ -87,7 +98,7 @@ export default function IndustryLayout({
                 </div>
               </div>
               <div className="mt-1 text-sm text-gray-600">
-                <span>Sector: {industryData.sectorName}</span>
+                <span>Sector: {marketsData.sectorName}</span>
               </div>
             </div>
 

@@ -4,138 +4,92 @@ import { useState, useRef, useEffect } from 'react';
 import StockLayout from '@/app/components/layout/StockLayout';
 import { formatNumber } from '@/app/lib/utils';
 import Image from 'next/image';
+import { 
+  FinancialMetric, 
+  fetchFinancialData, 
+  getFinancialData, 
+  getYearsFromData,
+  getForecastYearsFromData,
+  ReportType
+} from './api';
 
 type StatementType = 'Income Statement' | 'Balance Sheet' | 'Cash Flow';
 type Period = 'Annual' | 'TTM';
 type Unit = '.0' | '.00' | 'K' | 'M' | 'B';
 
-interface FinancialMetric {
+// Financial report tree structure
+interface TreeNode {
+  id: string;
   name: string;
-  values: { [year: string]: number };
-  isSubItem?: boolean;
-  isBold?: boolean;
+  children?: TreeNode[];
+  isExpanded?: boolean;
 }
 
-// Mock data structure
-const mockData: FinancialMetric[] = [
+const financialReportTree: TreeNode[] = [
   {
-    name: 'Gross Profit',
-    values: {
-      '2020': 104956,
-      '2021': 152836,
-      '2022': 170782,
-      '2023': 169148,
-      '2024': 180683,
-    }
+    id: 'overview',
+    name: 'Overview',
+    isExpanded: false,
   },
   {
-    name: 'Operating Income/Expenses',
-    values: {
-      '2020': -38668,
-      '2021': -43887,
-      '2022': -51345,
-      '2023': -54847,
-      '2024': -57467,
-    }
+    id: 'financial-statements',
+    name: 'Financial Statements',
+    isExpanded: true,
+    children: [
+      {
+        id: 'income-statement',
+        name: 'Income Statement',
+      },
+      {
+        id: 'balance-sheet',
+        name: 'Balance Sheet',
+      },
+      {
+        id: 'cash-flow',
+        name: 'Cash Flow',
+      }
+    ]
   },
   {
-    name: 'Total Operating Profit/Loss',
-    values: {
-      '2020': 66288,
-      '2021': 108949,
-      '2022': 119437,
-      '2023': 114301,
-      '2024': 123216,
-    },
-    isBold: true
+    id: 'adjusted-roic',
+    name: 'Adjusted Return On Invested Capital',
+    isExpanded: false,
   },
   {
-    name: 'Non-Operating Income/Expense, Total',
-    values: {
-      '2020': 803,
-      '2021': 258,
-      '2022': -334,
-      '2023': -565,
-      '2024': 269,
-    }
+    id: 'capital-allocation',
+    name: 'Capital Allocation',
+    isExpanded: false,
   },
   {
-    name: 'Pretax Income',
-    values: {
-      '2020': 67091,
-      '2021': 109207,
-      '2022': 119103,
-      '2023': 113736,
-      '2024': 123485,
-    },
-    isBold: true
+    id: 'key-ratios-growth',
+    name: 'Key Ratios – Growth',
+    isExpanded: false,
   },
   {
-    name: 'Provision for Income Tax',
-    values: {
-      '2020': -9680,
-      '2021': -14527,
-      '2022': -19300,
-      '2023': -16741,
-      '2024': -29749,
-    }
+    id: 'key-ratios-profitability',
+    name: 'Key Ratios – Profitability',
+    isExpanded: false,
   },
   {
-    name: 'Net Income before Extraordinary Items',
-    values: {
-      '2020': 57411,
-      '2021': 94680,
-      '2022': 99803,
-      '2023': 96995,
-      '2024': 93736,
-    },
-    isBold: true
-  },
-  {
-    name: 'Net Income Available to Common Stockholders',
-    values: {
-      '2020': 57411,
-      '2021': 94680,
-      '2022': 99803,
-      '2023': 96995,
-      '2024': 93736,
-    },
-    isBold: true
-  },
-  {
-    name: 'Basic Weighted Average Shares Outstanding',
-    values: {
-      '2020': 17352.12,
-      '2021': 16701.27,
-      '2022': 16215.96,
-      '2023': 15744.23,
-      '2024': 15343.78,
-    }
-  },
-  {
-    name: 'Diluted Weighted Average Shares Outstanding',
-    values: {
-      '2020': 17528.21,
-      '2021': 16864.92,
-      '2022': 16325.82,
-      '2023': 15812.55,
-      '2024': 15408.10,
-    }
-  },
-  {
-    name: 'Total Dividend Per Share',
-    values: {
-      '2020': 0.795,
-      '2021': 0.850,
-      '2022': 0.900,
-      '2023': 0.940,
-      '2024': 0.980,
-    }
-  },
+    id: 'earnings-asset-quality',
+    name: 'Earnings & Asset Quality',
+    isExpanded: false,
+  }
 ];
 
-const years = ['2020', '2021', '2022', '2023', '2024'];
-const forecastYears = ['2023', '2024'];
+// Map statement types to API report types
+const statementToReportType = (statement: StatementType): ReportType => {
+  switch (statement) {
+    case 'Income Statement':
+      return 'income';
+    case 'Balance Sheet':
+      return 'balance';
+    case 'Cash Flow':
+      return 'cash_flow';
+    default:
+      return 'income';
+  }
+};
 
 export default function FinancialsPage({ params }: { params: { symbol: string } }) {
   const [activeStatement, setActiveStatement] = useState<StatementType>('Income Statement');
@@ -145,7 +99,54 @@ export default function FinancialsPage({ params }: { params: { symbol: string } 
   const [selectedUnit, setSelectedUnit] = useState<Unit>('M');
   const [lastUnit, setLastUnit] = useState<'K' | 'M' | 'B'>('M');
   const [decimalPlaces, setDecimalPlaces] = useState<0 | 1 | 2>(1);
+  const [treeNodes, setTreeNodes] = useState<TreeNode[]>(financialReportTree);
+  const [activeNodeId, setActiveNodeId] = useState<string>('income-statement');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [financialData, setFinancialData] = useState<FinancialMetric[]>([]);
+  const [years, setYears] = useState<string[]>([]);
+  const [forecastYears, setForecastYears] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Fetch data when activeStatement changes
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const reportType = statementToReportType(activeStatement);
+        const data = await fetchFinancialData(params.symbol, reportType);
+        
+        if (data.length > 0) {
+          setFinancialData(data);
+          const extractedYears = getYearsFromData(data);
+          setYears(extractedYears);
+          setForecastYears(getForecastYearsFromData(data));
+        } else {
+          // Fallback to mock data if API returns empty
+          const mockData = getFinancialData();
+          setFinancialData(mockData);
+          setYears(['2020', '2021', '2022', '2023', '2024']);
+          setForecastYears(['2023', '2024']);
+        }
+      } catch (err) {
+        console.error('Error fetching financial data:', err);
+        setError('Failed to load financial data. Using mock data instead.');
+        
+        // Use mock data as fallback
+        const mockData = getFinancialData();
+        setFinancialData(mockData);
+        setYears(['2020', '2021', '2022', '2023', '2024']);
+        setForecastYears(['2023', '2024']);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [activeStatement, params.symbol]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -185,15 +186,147 @@ export default function FinancialsPage({ params }: { params: { symbol: string } 
     return showForecast ? years : years.slice(0, -2);
   };
 
+  // Toggle expanded state of a tree node
+  const toggleNodeExpand = (nodeId: string) => {
+    setTreeNodes(prevNodes => 
+      prevNodes.map(node => {
+        if (node.id === nodeId) {
+          return { ...node, isExpanded: !node.isExpanded };
+        }
+        return node;
+      })
+    );
+  };
+
+  // Set active node and update active statement if needed
+  const handleNodeSelect = (nodeId: string) => {
+    setActiveNodeId(nodeId);
+    
+    // Update active statement based on selected node
+    if (nodeId === 'income-statement') {
+      setActiveStatement('Income Statement');
+    } else if (nodeId === 'balance-sheet') {
+      setActiveStatement('Balance Sheet');
+    } else if (nodeId === 'cash-flow') {
+      setActiveStatement('Cash Flow');
+    }
+  };
+
+  // Render tree node and its children recursively
+  const renderTreeNode = (node: TreeNode, level = 0) => {
+    const isActive = node.id === activeNodeId;
+    const hasChildren = node.children && node.children.length > 0;
+    
+    return (
+      <div key={node.id} className="mb-1">
+        <div 
+          className={`flex items-center py-1.5 pl-${level * 4} ${isActive ? 'text-blue-600 font-medium' : 'text-gray-700'} hover:bg-gray-100 rounded cursor-pointer text-sm`}
+        >
+          {hasChildren && (
+            <button 
+              onClick={() => toggleNodeExpand(node.id)}
+              className="mr-1 w-4 h-4 flex items-center justify-center"
+            >
+              {node.isExpanded ? (
+                <span className="text-xs">▼</span>
+              ) : (
+                <span className="text-xs">►</span>
+              )}
+            </button>
+          )}
+          
+          <span 
+            className={`${!hasChildren ? 'ml-5' : ''} truncate`}
+            onClick={() => handleNodeSelect(node.id)}
+            title={node.name}
+          >
+            {node.name}
+          </span>
+        </div>
+        
+        {node.isExpanded && node.children && (
+          <div className="ml-2">
+            {node.children.map(childNode => renderTreeNode(childNode, level + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Get current statement title from active node
+  const getCurrentStatementTitle = () => {
+    // Find the corresponding node in the tree structure
+    let title = 'Financial Statements';
+    
+    // Check direct matches
+    if (activeNodeId === 'overview') return 'Overview';
+    if (activeNodeId === 'income-statement') return 'Income Statement';
+    if (activeNodeId === 'balance-sheet') return 'Balance Sheet';
+    if (activeNodeId === 'cash-flow') return 'Cash Flow';
+    if (activeNodeId === 'adjusted-roic') return 'Adjusted Return On Invested Capital';
+    if (activeNodeId === 'capital-allocation') return 'Capital Allocation';
+    if (activeNodeId === 'key-ratios-growth') return 'Key Ratios – Growth';
+    if (activeNodeId === 'key-ratios-profitability') return 'Key Ratios – Profitability';
+    if (activeNodeId === 'earnings-asset-quality') return 'Earnings & Asset Quality';
+    
+    // If it's a parent node (like financial-statements), just use the node name
+    const findNodeTitle = (nodes: TreeNode[]): string | null => {
+      for (const node of nodes) {
+        if (node.id === activeNodeId) {
+          return node.name;
+        }
+        if (node.children) {
+          const childTitle = findNodeTitle(node.children);
+          if (childTitle) return childTitle;
+        }
+      }
+      return null;
+    };
+    
+    const foundTitle = findNodeTitle(treeNodes);
+    if (foundTitle) title = foundTitle;
+    
+    return title;
+  };
+
   return (
     <StockLayout symbol={params.symbol} companyName="Apple Inc." sector="Technology" country="United States">
-      <div className="grid grid-cols-12 min-h-screen bg-white">
-        {/* Main Content Area */}
-        <div className="col-span-9 border-r">
+      <div className="flex min-h-screen bg-white">
+        {/* Sidebar Container with fixed width that collapses */}
+        <div 
+          className={`${sidebarCollapsed ? 'w-0' : 'w-64'} 
+            flex-shrink-0 transition-all duration-300 ease-in-out 
+            border-r border-gray-200 relative`}
+        >
+          {/* Sidebar Content */}
+          <div className={`p-4 ${sidebarCollapsed ? 'invisible' : 'visible'} w-64`}>
+            <h3 className="font-medium text-gray-900 mb-4">Financial Reports</h3>
+            <div className="space-y-1">
+              {treeNodes.map(node => renderTreeNode(node))}
+            </div>
+          </div>
+        </div>
+
+        {/* Toggle Button - Always at the same position */}
+        <div className="relative">
+          <button 
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="absolute -left-3 top-6 w-6 h-16 bg-white border border-gray-200 
+              rounded-r-md flex items-center justify-center shadow-sm z-10"
+          >
+            <span className="text-gray-500">
+              {sidebarCollapsed ? '►' : '◄'}
+            </span>
+          </button>
+        </div>
+
+        {/* Main Content Area - Flexible width */}
+        <div className="flex-grow">
           <div className="p-6">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Financial Statements</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{getCurrentStatementTitle()}</h2>
               <p className="text-xs text-gray-500 mt-1">USD except per share data</p>
+              {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
             </div>
 
             {/* Statement Type Tabs and Controls */}
@@ -201,23 +334,6 @@ export default function FinancialsPage({ params }: { params: { symbol: string } 
               <div className="flex justify-between items-center">
                 {/* Left Side Controls */}
                 <div className="flex items-center space-x-3">
-                  {/* Statement Tabs */}
-                  <div className="flex space-x-1">
-                    {['Income Statement', 'Balance Sheet', 'Cash Flow'].map((statement) => (
-                      <button
-                        key={statement}
-                        onClick={() => setActiveStatement(statement as StatementType)}
-                        className={`px-3 py-1.5 text-xs font-medium rounded-md ${
-                          activeStatement === statement
-                            ? 'bg-gray-900 text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {statement}
-                      </button>
-                    ))}
-                  </div>
-
                   {/* Period Dropdown */}
                   <div className="relative" ref={dropdownRef}>
                     <button
@@ -339,21 +455,17 @@ export default function FinancialsPage({ params }: { params: { symbol: string } 
             </div>
 
             {/* Financial Data Table */}
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 bg-white border-b w-72">
                       Name
-                    </th>
-                    <th className="px-4 py-2 text-right text-xs font-medium text-gray-400 bg-gray-50 border-b w-20">
-                      17
-                    </th>
-                    <th className="px-4 py-2 text-right text-xs font-medium text-red-500 bg-gray-50 border-b w-20">
-                      2018
-                    </th>
-                    <th className="px-4 py-2 text-right text-xs font-medium text-red-500 bg-gray-50 border-b w-20">
-                      2019
                     </th>
                     {getDisplayYears().map(year => (
                       <th
@@ -372,17 +484,14 @@ export default function FinancialsPage({ params }: { params: { symbol: string } 
                   </tr>
                 </thead>
                 <tbody>
-                  {mockData.map((metric, index) => (
+                    {financialData.map((metric, index) => (
                     <tr
                       key={index}
                       className="hover:bg-gray-50"
                     >
-                      <td className={`px-4 py-2 text-xs border-b ${metric.isBold ? 'font-medium text-gray-900' : 'text-gray-600'}`}>
+                      <td className={`px-4 py-2 text-xs border-b ${metric.isBold ? 'font-medium text-gray-900 border-b-2 border-gray-300' : 'text-gray-600'}`}>
                         {metric.name}
                       </td>
-                      <td className="px-4 py-2 text-right text-xs text-gray-400 bg-gray-50 border-b">—</td>
-                      <td className="px-4 py-2 text-right text-xs text-gray-400 bg-gray-50 border-b">—</td>
-                      <td className="px-4 py-2 text-right text-xs text-gray-400 bg-gray-50 border-b">—</td>
                       {getDisplayYears().map(year => (
                         <td
                           key={year}
@@ -392,9 +501,11 @@ export default function FinancialsPage({ params }: { params: { symbol: string } 
                               : 'text-gray-600'
                           } ${
                             year === forecastYears[0] ? 'border-l-2 border-l-blue-700' : ''
-                          } ${metric.isBold ? 'font-medium' : ''}`}
+                          } ${metric.isBold ? 'font-medium border-b-2 border-gray-300' : ''}`}
                         >
-                          {formatValue(metric.values[year])}
+                          {metric.values && metric.values[year] !== undefined 
+                            ? (metric.values[year] === 0 ? '—' : formatValue(metric.values[year]))
+                            : '—'}
                         </td>
                       ))}
                     </tr>
@@ -402,11 +513,9 @@ export default function FinancialsPage({ params }: { params: { symbol: string } 
                 </tbody>
               </table>
             </div>
+            )}
           </div>
         </div>
-
-        {/* Empty Right Column */}
-        <div className="col-span-3"></div>
       </div>
     </StockLayout>
   );

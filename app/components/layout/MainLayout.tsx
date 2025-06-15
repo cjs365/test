@@ -1,9 +1,15 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ThemeToggle } from '@/app/components/ui/theme-toggle';
 import { useTheme } from '@/app/context/ThemeProvider';
+import { useState, useEffect, useRef } from 'react';
+
+type SearchResult = {
+  title: string;
+  description: string;
+};
 
 type MainLayoutProps = {
   children: React.ReactNode;
@@ -11,19 +17,76 @@ type MainLayoutProps = {
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const isHomePage = pathname === '/';
   const { theme } = useTheme();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Handle clicks outside of the search results to close the dropdown
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSearch = async () => {
+    if (searchQuery.trim().length === 0) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+    
+    setIsSearching(true);
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/search?keyword=${encodeURIComponent(searchQuery)}&limit=10`);
+      if (!response.ok) throw new Error('Search failed');
+      
+      const data = await response.json();
+      setSearchResults(data.results);
+      setShowResults(true);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    if (e.target.value.trim().length > 1) {
+      handleSearch();
+    } else {
+      setSearchResults([]);
+      setShowResults(false);
+    }
+  };
+
+  const handleResultClick = (ticker: string) => {
+    // Extract the ticker symbol from the title (e.g., "AAPL.US" -> "aapl.us")
+    const formattedTicker = ticker.toLowerCase();
+    router.push(`/stock/${formattedTicker}/overview`);
+    setShowResults(false);
+    setSearchQuery('');
+  };
 
   const navItems = [
     { name: 'Equities', path: '/stock' },
     { name: 'Screener', path: '/screener' },
-    { name: 'Industry', path: '/industry' },
+    { name: 'Markets', path: '/markets' },
     { name: 'Portfolio', path: '/portfolio' },
+    { name: 'Macro', path: '/macro' },
     { name: 'Charting', path: '/charting' },
     { name: 'Analysis', path: '/analysis' },
-    { name: 'News', path: '/news' },
-    { name: 'Economy', path: '/economy' },
-    { name: 'Opinion', path: '/opinion' }
   ];
 
   return (
@@ -35,20 +98,62 @@ export default function MainLayout({ children }: MainLayoutProps) {
           <div className="flex items-center h-10">
             <Link href="/" className="navbar-brand shrink-0 text-sm">XXXXX</Link>
             <div className="absolute left-1/2 transform -translate-x-1/2 w-2/3">
-              <div className="relative">
-                <input 
-                  type="text" 
-                  className={`w-full px-2 py-0.5 rounded border text-sm ${
-                    theme === 'dark' 
-                      ? 'bg-gray-800 text-gray-100 border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
-                      : 'bg-white text-gray-900 border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
-                  }`}
-                  placeholder="Search stocks, ETFs, or news..."
-                />
-                <button className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  <i className="fas fa-search"></i>
-                </button>
-              </div>
+                              <div className="relative" ref={searchRef}>
+                  <input 
+                    type="text" 
+                    className={`w-full px-2 py-0.5 rounded border text-sm ${
+                      theme === 'dark' 
+                        ? 'bg-gray-800 text-gray-100 border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
+                        : 'bg-white text-gray-900 border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                    }`}
+                    placeholder="Search stocks, ETFs, or news..."
+                    value={searchQuery}
+                    onChange={handleInputChange}
+                    onFocus={() => searchResults.length > 0 && setShowResults(true)}
+                  />
+                  <button 
+                    className={`absolute right-2 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}
+                    onClick={handleSearch}
+                  >
+                    <i className="fas fa-search"></i>
+                  </button>
+                  
+                  {/* Search Results Dropdown */}
+                  {showResults && searchResults.length > 0 && (
+                    <div 
+                      className="fixed left-0 right-0 top-0 bottom-0 bg-transparent pointer-events-none z-[9999]"
+                    >
+                      <div 
+                        className="pointer-events-auto absolute left-1/2 transform -translate-x-1/2"
+                        style={{ 
+                          width: '66.66%', 
+                          top: '32px',
+                        }}
+                      >
+                        <div className={`w-full rounded-md shadow-xl ${
+                          theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
+                        }`}>
+                          {searchResults.map((result, index) => (
+                            <div 
+                              key={index}
+                              className={`px-3 py-2 cursor-pointer ${
+                                theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                              }`}
+                              onClick={() => handleResultClick(result.title)}
+                            >
+                              <div className={`font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
+                                {result.title}
+                              </div>
+                              <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                {result.description}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
             </div>
             <div className="ml-auto flex items-center">
               <ThemeToggle />

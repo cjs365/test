@@ -265,7 +265,15 @@ const ModelPortfolios: React.FC = () => {
                     <th className="py-2 px-2 text-left font-medium"></th>
                     <th className="py-2 px-2 text-right font-medium">YTD</th>
                     <th className="py-2 px-2 text-right font-medium">1 Year</th>
-                    <th className="py-2 px-2 text-right font-medium">3 Year (Ann.)</th>
+                    <th className="py-2 px-2 text-right font-medium relative group align-bottom">
+                      <div className="absolute right-0 -top-8 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                        Annualized return over 3 years
+                      </div>
+                      <span className="flex items-end justify-end whitespace-nowrap">
+                        3 Year
+                        <i className="fas fa-info-circle ml-1 text-gray-400 text-xs"></i>
+                      </span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -479,7 +487,7 @@ export default function HomePage() {
                     <div className={`chart-label small text-xs ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                     }`}>AROIC</div>
-                    <div className="spikebar-container flex items-end h-16 space-x-1">
+                    <div className="spikebar-container flex items-end h-16 space-x-0.5">
                       {[...Array(12)].map((_, i) => (
                         <div
                           key={i}

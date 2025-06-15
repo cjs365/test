@@ -21,7 +21,7 @@ import MetricCard from '@/app/components/charts/MetricCard';
 
 type Props = {
   params: {
-    industryId: string;
+    marketsId: string;
   };
 };
 
@@ -31,13 +31,25 @@ type FinancialDataPoint = {
   isEstimate?: boolean;
 };
 
+type TopStock = {
+  ticker: string;
+  name: string;
+  marketCap: number; // in billions
+  aroicLFY: number; // Last Fiscal Year
+  aroicNTM: number; // Next Twelve Months
+  pe: number;
+  pb: number;
+  return1M: number;
+  return12M: number;
+};
+
 export default function IndustryOverviewPage({ params }: Props) {
   const [timeframe, setTimeframe] = useState<'1Y' | '3Y' | '5Y'>('1Y');
-  const industryId = params.industryId;
+  const marketsId = params.marketsId;
 
   // Mock data for industry metrics
   const mockIndustryData = {
-    name: industryId.charAt(0).toUpperCase() + industryId.slice(1),
+    name: marketsId.charAt(0).toUpperCase() + marketsId.slice(1),
     metrics: {
       peRatio: 24.8,
       priceToSales: 3.2,
@@ -52,56 +64,70 @@ export default function IndustryOverviewPage({ params }: Props) {
     }
   };
 
-  // Mock data for industry revenue growth
-  const mockRevenueGrowthData: FinancialDataPoint[] = [
-    { year: '2014', value: 8.2 },
-    { year: '2015', value: 9.5 },
-    { year: '2016', value: 7.3 },
-    { year: '2017', value: 10.8 },
-    { year: '2018', value: 12.1 },
-    { year: '2019', value: 9.5 },
-    { year: '2020', value: 4.3 },
-    { year: '2021', value: 15.8 },
-    { year: '2022', value: 12.2 },
-    { year: '2023', value: 8.8 },
-    // Forecasts
-    { year: 'FY1', value: 9.5, isEstimate: true },
-    { year: 'FY2', value: 10.2, isEstimate: true },
-    { year: 'FY3', value: 11.5, isEstimate: true },
+  // Mock data for top 10 stocks by market cap
+  const mockTopStocks: TopStock[] = [
+    { ticker: "AAPL", name: "Apple Inc.", marketCap: 2850.5, aroicLFY: 32.4, aroicNTM: 33.8, pe: 28.5, pb: 15.8, return1M: 3.2, return12M: 21.5 },
+    { ticker: "MSFT", name: "Microsoft Corp.", marketCap: 2750.2, aroicLFY: 29.8, aroicNTM: 31.2, pe: 32.1, pb: 12.3, return1M: 2.8, return12M: 24.7 },
+    { ticker: "NVDA", name: "NVIDIA Corp.", marketCap: 2200.8, aroicLFY: 35.6, aroicNTM: 38.2, pe: 45.3, pb: 22.5, return1M: 5.6, return12M: 120.3 },
+    { ticker: "GOOGL", name: "Alphabet Inc.", marketCap: 1950.3, aroicLFY: 25.3, aroicNTM: 26.7, pe: 24.8, pb: 6.2, return1M: 1.5, return12M: 18.2 },
+    { ticker: "AMZN", name: "Amazon.com Inc.", marketCap: 1850.7, aroicLFY: 18.2, aroicNTM: 21.5, pe: 36.7, pb: 8.9, return1M: 2.3, return12M: 15.8 },
+    { ticker: "META", name: "Meta Platforms Inc.", marketCap: 1250.4, aroicLFY: 22.8, aroicNTM: 24.3, pe: 26.1, pb: 7.4, return1M: 4.2, return12M: 35.6 },
+    { ticker: "TSLA", name: "Tesla Inc.", marketCap: 850.6, aroicLFY: 19.5, aroicNTM: 21.8, pe: 62.3, pb: 10.5, return1M: -2.8, return12M: -15.3 },
+    { ticker: "TSM", name: "Taiwan Semiconductor", marketCap: 780.3, aroicLFY: 26.7, aroicNTM: 28.2, pe: 22.5, pb: 5.8, return1M: 3.5, return12M: 42.7 },
+    { ticker: "AVGO", name: "Broadcom Inc.", marketCap: 620.5, aroicLFY: 24.3, aroicNTM: 25.8, pe: 28.7, pb: 9.2, return1M: 1.8, return12M: 32.5 },
+    { ticker: "ASML", name: "ASML Holding N.V.", marketCap: 580.2, aroicLFY: 28.5, aroicNTM: 29.7, pe: 32.4, pb: 14.3, return1M: 2.5, return12M: 28.7 }
   ];
 
-  // Mock data for industry profit margin
-  const mockProfitMarginData: FinancialDataPoint[] = [
+  // Mock data for industry AROIC
+  const mockAroicData: FinancialDataPoint[] = [
+    { year: '2014', value: 15.2 },
+    { year: '2015', value: 16.5 },
+    { year: '2016', value: 15.3 },
+    { year: '2017', value: 16.8 },
+    { year: '2018', value: 17.1 },
+    { year: '2019', value: 16.5 },
+    { year: '2020', value: 14.3 },
+    { year: '2021', value: 18.8 },
+    { year: '2022', value: 19.2 },
+    { year: '2023', value: 18.8 },
+    // Forecasts
+    { year: 'FY1', value: 19.5, isEstimate: true },
+    { year: 'FY2', value: 20.2, isEstimate: true },
+    { year: 'FY3', value: 21.5, isEstimate: true },
+  ];
+
+  // Mock data for industry asset growth
+  const mockAssetGrowthData: FinancialDataPoint[] = [
     { year: '2014', value: 10.5 },
     { year: '2015', value: 11.2 },
-    { year: '2016', value: 10.8 },
+    { year: '2016', value: 9.8 },
     { year: '2017', value: 12.1 },
     { year: '2018', value: 13.4 },
-    { year: '2019', value: 12.8 },
-    { year: '2020', value: 9.5 },
-    { year: '2021', value: 13.6 },
-    { year: '2022', value: 14.2 },
-    { year: '2023', value: 12.4 },
+    { year: '2019', value: 11.8 },
+    { year: '2020', value: 8.5 },
+    { year: '2021', value: 14.6 },
+    { year: '2022', value: 13.2 },
+    { year: '2023', value: 11.4 },
     // Forecasts
-    { year: 'FY1', value: 13.5, isEstimate: true },
-    { year: 'FY2', value: 14.2, isEstimate: true },
-    { year: 'FY3', value: 14.8, isEstimate: true },
+    { year: 'FY1', value: 12.5, isEstimate: true },
+    { year: 'FY2', value: 13.2, isEstimate: true },
+    { year: 'FY3', value: 13.8, isEstimate: true },
   ];
 
-  // Mock data for industry performance vs market
+  // Mock data for industry performance vs benchmark
   const mockPerformanceData = [
-    { date: '2023-01', industry: 5.2, market: 4.8 },
-    { date: '2023-02', industry: 3.5, market: 2.2 },
-    { date: '2023-03', industry: -1.1, market: -0.8 },
-    { date: '2023-04', industry: 2.8, market: 1.5 },
-    { date: '2023-05', industry: 4.4, market: 3.2 },
-    { date: '2023-06', industry: -0.7, market: -1.2 },
-    { date: '2023-07', industry: 6.8, market: 4.5 },
-    { date: '2023-08', industry: 2.4, market: 1.2 },
-    { date: '2023-09', industry: -2.1, market: -1.5 },
-    { date: '2023-10', industry: 5.8, market: 3.2 },
-    { date: '2023-11', industry: 7.4, market: 4.2 },
-    { date: '2023-12', industry: 3.4, market: 2.2 },
+    { date: '2023-01', industry: 5.2, benchmark: 4.8 },
+    { date: '2023-02', industry: 3.5, benchmark: 2.2 },
+    { date: '2023-03', industry: -1.1, benchmark: -0.8 },
+    { date: '2023-04', industry: 2.8, benchmark: 1.5 },
+    { date: '2023-05', industry: 4.4, benchmark: 3.2 },
+    { date: '2023-06', industry: -0.7, benchmark: -1.2 },
+    { date: '2023-07', industry: 6.8, benchmark: 4.5 },
+    { date: '2023-08', industry: 2.4, benchmark: 1.2 },
+    { date: '2023-09', industry: -2.1, benchmark: -1.5 },
+    { date: '2023-10', industry: 5.8, benchmark: 3.2 },
+    { date: '2023-11', industry: 7.4, benchmark: 4.2 },
+    { date: '2023-12', industry: 3.4, benchmark: 2.2 },
   ];
 
   // Mock data for market cap distribution
@@ -133,12 +159,12 @@ export default function IndustryOverviewPage({ params }: Props) {
           </div>
           
           <div className="space-y-6">
-            {/* Revenue Growth Chart */}
+            {/* AROIC Chart */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xs font-semibold">Industry Revenue Growth</h3>
+                <h3 className="text-xs font-semibold">Industry Adjusted Return on Invested Capital (AROIC)</h3>
                 <div className="flex items-center gap-4">
-                  <span className="text-xs text-gray-500">10Y Average: 9.7%</span>
+                  <span className="text-xs text-gray-500">10Y Average: 16.7%</span>
                   <div className="flex items-center gap-2 text-xs">
                     <span className="w-3 h-3 bg-gray-300 rounded-sm"></span>
                     <span>Historical</span>
@@ -149,7 +175,58 @@ export default function IndustryOverviewPage({ params }: Props) {
               </div>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={mockRevenueGrowthData} margin={{ left: 0 }}>
+                  <BarChart data={mockAroicData} margin={{ left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis 
+                      dataKey="year" 
+                      tick={{ fontSize: 11 }}
+                      interval={1}
+                    />
+                    <YAxis 
+                      tickFormatter={(value) => `${value}%`}
+                      tick={{ fontSize: 11 }}
+                      domain={[0, 'auto']}
+                    />
+                    <Tooltip 
+                      formatter={(value: any) => value ? [`${value}%`, 'AROIC'] : ['No data', 'AROIC']}
+                      labelStyle={{ fontSize: 12 }}
+                    />
+                    <Bar 
+                      dataKey="value"
+                      fill="#6b7280"
+                    >
+                      {mockAroicData.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`}
+                          fill={entry.isEstimate ? '#bfdbfe' : '#6b7280'}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                Industry AROIC measures how efficiently companies in the industry generate profits from invested capital, adjusted for accounting distortions.
+              </p>
+            </div>
+
+            {/* Asset Growth Chart */}
+            <div className="mt-8">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-xs font-semibold">Industry Asset Growth</h3>
+                <div className="flex items-center gap-4">
+                  <span className="text-xs text-gray-500">10Y Average: 11.5%</span>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="w-3 h-3 bg-gray-300 rounded-sm"></span>
+                    <span>Historical</span>
+                    <span className="w-3 h-3 bg-blue-200 rounded-sm"></span>
+                    <span>Estimate</span>
+                  </div>
+                </div>
+              </div>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={mockAssetGrowthData} margin={{ left: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis 
                       dataKey="year" 
@@ -167,59 +244,8 @@ export default function IndustryOverviewPage({ params }: Props) {
                     />
                     <Bar 
                       dataKey="value"
-                      fill="#6b7280"
                     >
-                      {mockRevenueGrowthData.map((entry, index) => (
-                        <Cell 
-                          key={`cell-${index}`}
-                          fill={entry.isEstimate ? '#bfdbfe' : '#6b7280'}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              <p className="text-xs text-gray-600 mt-2">
-                Industry revenue growth shows the year-over-year percentage change in total revenue across all companies in the industry.
-              </p>
-            </div>
-
-            {/* Profit Margin Chart */}
-            <div className="mt-8">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xs font-semibold">Industry Profit Margin</h3>
-                <div className="flex items-center gap-4">
-                  <span className="text-xs text-gray-500">10Y Average: 12.1%</span>
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="w-3 h-3 bg-gray-300 rounded-sm"></span>
-                    <span>Historical</span>
-                    <span className="w-3 h-3 bg-blue-200 rounded-sm"></span>
-                    <span>Estimate</span>
-                  </div>
-                </div>
-              </div>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={mockProfitMarginData} margin={{ left: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis 
-                      dataKey="year" 
-                      tick={{ fontSize: 11 }}
-                      interval={1}
-                    />
-                    <YAxis 
-                      tickFormatter={(value) => `${value}%`}
-                      tick={{ fontSize: 11 }}
-                      domain={[0, 'auto']}
-                    />
-                    <Tooltip 
-                      formatter={(value: any) => value ? [`${value}%`, 'Margin'] : ['No data', 'Margin']}
-                      labelStyle={{ fontSize: 12 }}
-                    />
-                    <Bar 
-                      dataKey="value"
-                    >
-                      {mockProfitMarginData.map((entry) => (
+                      {mockAssetGrowthData.map((entry) => (
                         <Cell 
                           key={`cell-${entry.year}`}
                           fill={entry.isEstimate ? '#bfdbfe' : '#6b7280'}
@@ -230,19 +256,19 @@ export default function IndustryOverviewPage({ params }: Props) {
                 </ResponsiveContainer>
               </div>
               <p className="text-xs text-gray-600 mt-2">
-                Industry profit margin represents the average net profit margin across all companies in the industry.
+                Industry asset growth shows the year-over-year change in total assets across companies in the industry, indicating expansion rates and capital deployment.
               </p>
             </div>
 
-            {/* Performance vs Market */}
+            {/* Performance vs Benchmark */}
             <div className="mt-8">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xs font-semibold">Performance vs Market (2023)</h3>
+                <h3 className="text-xs font-semibold">Performance vs Benchmark (2023)</h3>
                 <div className="flex items-center gap-2 text-xs">
                   <span className="w-3 h-3 bg-blue-500 rounded-sm"></span>
                   <span>Industry</span>
                   <span className="w-3 h-3 bg-gray-400 rounded-sm"></span>
-                  <span>Market</span>
+                  <span>Benchmark</span>
                 </div>
               </div>
               <div className="h-64">
@@ -259,7 +285,7 @@ export default function IndustryOverviewPage({ params }: Props) {
                       tick={{ fontSize: 11 }}
                     />
                     <Tooltip 
-                      formatter={(value: any) => [`${value}%`, value === mockPerformanceData[0].industry ? 'Industry' : 'Market']}
+                      formatter={(value: any) => [`${value}%`, value === mockPerformanceData[0].industry ? 'Industry' : 'Benchmark']}
                       labelStyle={{ fontSize: 12 }}
                     />
                     <Legend />
@@ -273,20 +299,67 @@ export default function IndustryOverviewPage({ params }: Props) {
                     />
                     <Line 
                       type="monotone" 
-                      dataKey="market" 
+                      dataKey="benchmark" 
                       stroke="#9ca3af" 
                       strokeWidth={2} 
                       dot={{ r: 3 }} 
-                      name="Market"
+                      name="Benchmark"
                     />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
               <p className="text-xs text-gray-600 mt-2">
-                Monthly performance comparison between the industry and the broader market index.
+                Monthly performance comparison between the industry and its relevant market benchmark.
               </p>
             </div>
           </div>
+        </section>
+
+        {/* Top Stocks Section */}
+        <section className="pb-6 border-b">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-sm font-bold uppercase tracking-wider">Top 10 Stocks by Market Cap</h2>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticker</th>
+                  <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
+                  <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Market Cap (USD bn)</th>
+                  <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">AROIC LFY</th>
+                  <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">AROIC NTM</th>
+                  <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">P/E</th>
+                  <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">P/B</th>
+                  <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">1M Return</th>
+                  <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">12M Return</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {mockTopStocks.map((stock) => (
+                  <tr key={stock.ticker} className="hover:bg-gray-50">
+                    <td className="px-3 py-2 whitespace-nowrap text-xs font-medium text-blue-600">{stock.ticker}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{stock.name}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900 text-right">{stock.marketCap.toFixed(1)}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900 text-right">{stock.aroicLFY.toFixed(1)}%</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900 text-right">{stock.aroicNTM.toFixed(1)}%</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900 text-right">{stock.pe.toFixed(1)}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900 text-right">{stock.pb.toFixed(1)}</td>
+                    <td className={`px-3 py-2 whitespace-nowrap text-xs text-right ${stock.return1M >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {stock.return1M >= 0 ? '+' : ''}{stock.return1M.toFixed(1)}%
+                    </td>
+                    <td className={`px-3 py-2 whitespace-nowrap text-xs text-right ${stock.return12M >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {stock.return12M >= 0 ? '+' : ''}{stock.return12M.toFixed(1)}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-gray-600 mt-3">
+            LFY = Last Fiscal Year, NTM = Next Twelve Months (estimated)
+          </p>
         </section>
       </div>
 
@@ -356,85 +429,6 @@ export default function IndustryOverviewPage({ params }: Props) {
               change={0.4} 
               isPositiveGood={true}
             />
-          </div>
-        </div>
-
-        {/* Industry Composition */}
-        <div className="bg-gray-50 p-4 rounded-md">
-          <h3 className="text-sm font-bold mb-3">Industry Composition</h3>
-          
-          {/* Market Cap Distribution */}
-          <div className="mb-4">
-            <h4 className="text-xs font-semibold mb-2">Market Cap Distribution</h4>
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={mockMarketCapDistribution}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={60}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {mockMarketCapDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => `${value}%`} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Geographic Distribution */}
-          <div>
-            <h4 className="text-xs font-semibold mb-2">Geographic Distribution</h4>
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={mockGeographicDistribution}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={60}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {mockGeographicDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => `${value}%`} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-
-        {/* Industry Health Score */}
-        <div className="bg-gray-50 p-4 rounded-md">
-          <h3 className="text-sm font-bold mb-3">Industry Health Score</h3>
-          <div className="flex justify-center">
-            <ScoreGauge score={76} maxScore={100} label="Overall Health" />
-          </div>
-          <div className="grid grid-cols-2 gap-2 mt-4">
-            <div className="text-center">
-              <ScoreGauge score={82} maxScore={100} size="small" label="Growth" />
-            </div>
-            <div className="text-center">
-              <ScoreGauge score={68} maxScore={100} size="small" label="Stability" />
-            </div>
-            <div className="text-center">
-              <ScoreGauge score={74} maxScore={100} size="small" label="Profitability" />
-            </div>
-            <div className="text-center">
-              <ScoreGauge score={79} maxScore={100} size="small" label="Valuation" />
-            </div>
           </div>
         </div>
       </div>
