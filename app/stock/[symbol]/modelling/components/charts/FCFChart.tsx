@@ -5,10 +5,10 @@ import {
   XAxis, 
   YAxis, 
   CartesianGrid, 
-  Tooltip,
   ReferenceLine,
   Cell
 } from 'recharts';
+import ChartTooltip from '@/app/components/charts/ChartTooltip';
 
 interface ChartDataPoint {
   year: string;
@@ -74,9 +74,10 @@ export default function FCFChart({ title, data, preferredUnit }: FCFChartProps) 
               tickFormatter={formatYAxis}
               width={40}
             />
-            <Tooltip 
-              formatter={(value: number) => [value.toLocaleString(), title]}
+            <ChartTooltip
+              formatType="short"
               labelFormatter={(label) => `Year: ${label}`}
+              unit={preferredUnit}
             />
             <ReferenceLine y={0} stroke="#666" />
             <Bar 

@@ -5,10 +5,10 @@ import {
   XAxis, 
   YAxis, 
   CartesianGrid, 
-  Tooltip,
   ReferenceLine,
   Cell
 } from 'recharts';
+import ChartTooltip from '@/app/components/charts/ChartTooltip';
 
 interface ChartDataPoint {
   year: string;
@@ -38,13 +38,16 @@ export default function MetricsChart({ title, data, preferredUnit }: MetricsChar
   // Check if we have data
   const hasData = chartData.length > 0;
   
+  // Determine if we're using percentage format based on title
+  const isPercentage = title.toLowerCase().includes('growth') || 
+                       title.toLowerCase().includes('margin') || 
+                       title.toLowerCase().includes('aroic') ||
+                       title.includes('%');
+  
   // Format Y-axis values
   const formatYAxis = (value: number) => {
     // For percentages
-    if (title.toLowerCase().includes('growth') || 
-        title.toLowerCase().includes('margin') || 
-        title.toLowerCase().includes('aroic') ||
-        title.includes('%')) {
+    if (isPercentage) {
       return `${value}%`;
     }
     
@@ -82,17 +85,11 @@ export default function MetricsChart({ title, data, preferredUnit }: MetricsChar
               tickFormatter={formatYAxis}
               width={40}
             />
-            <Tooltip 
-              formatter={(value: number) => {
-                if (title.toLowerCase().includes('growth') || 
-                    title.toLowerCase().includes('margin') || 
-                    title.toLowerCase().includes('aroic') ||
-                    title.includes('%')) {
-                  return [`${value.toFixed(1)}%`, title];
-                }
-                return [value.toLocaleString(), title];
-              }}
+            <ChartTooltip
+              formatType={isPercentage ? 'percent' : 'short'}
               labelFormatter={(label) => `Year: ${label}`}
+              unit={preferredUnit}
+              decimals={1}
             />
             <ReferenceLine y={0} stroke="#666" />
             <Bar 

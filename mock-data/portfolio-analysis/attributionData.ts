@@ -148,14 +148,14 @@ export const attributionAnalysisData = {
         attribution: 0.1
       },
       {
-        factor: 'Size',
+        factor: 'Risk',
         exposure: -0.15,
         benchmarkExposure: 0.00,
         factorReturn: -1.2,
         attribution: 0.2
       },
       {
-        factor: 'Value',
+        factor: 'Valuation',
         exposure: 0.25,
         benchmarkExposure: 0.10,
         factorReturn: 2.1,
@@ -176,11 +176,18 @@ export const attributionAnalysisData = {
         attribution: 0.2
       },
       {
-        factor: 'Volatility',
+        factor: 'Risk',
         exposure: -0.22,
         benchmarkExposure: -0.05,
         factorReturn: -0.7,
         attribution: 0.1
+      },
+      {
+        factor: 'Growth',
+        exposure: 0.18,
+        benchmarkExposure: 0.08,
+        factorReturn: 3.5,
+        attribution: 0.3
       }
     ],
     topContributors: [
@@ -217,11 +224,12 @@ export const attributionAnalysisData = {
     specificRisk: 0.7,
     factorBreakdown: [
       { factor: 'Market', contribution: 75.2 },
-      { factor: 'Size', contribution: 2.5 },
-      { factor: 'Value', contribution: 5.8 },
+      { factor: 'Risk', contribution: 2.5 },
+      { factor: 'Valuation', contribution: 5.8 },
       { factor: 'Momentum', contribution: 8.2 },
       { factor: 'Quality', contribution: 4.5 },
-      { factor: 'Volatility', contribution: 3.8 }
+      { factor: 'Risk', contribution: 3.8 },
+      { factor: 'Growth', contribution: 3.0 }
     ]
   }
 }; 

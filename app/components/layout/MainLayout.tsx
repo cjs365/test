@@ -75,7 +75,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     
     setIsSearching(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/search?keyword=${encodeURIComponent(searchQuery)}&limit=10`);
+      const response = await fetch(`http://localhost:8000/api/v1/stock/search?keyword=${encodeURIComponent(searchQuery)}&limit=10`);
       if (!response.ok) throw new Error('Search failed');
       
       const data = await response.json();
