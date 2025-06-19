@@ -1,11 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import MainLayout from '@/app/components/layout/MainLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, Search, ArrowRight } from 'lucide-react';
+import { ChevronLeft, Search } from 'lucide-react';
 import Link from 'next/link';
 import { useTheme } from '@/app/context/ThemeProvider';
 
@@ -135,23 +133,46 @@ const categories = [
   'Valuation Models',
 ];
 
+// Get all unique first letters for the alphabetical navigation
+const alphabet = Array.from(new Set(financialTerms.map(term => term.term.charAt(0).toUpperCase()))).sort();
+const allLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
 export default function FinancialTermsPage() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
+  const [selectedLetter, setSelectedLetter] = useState('');
+  const [isNavSticky, setIsNavSticky] = useState(false);
+  const navRef = useRef(null);
+  const topOffsetRef = useRef(null);
 
-  // Filter terms based on search and category
+  // Filter terms based on search, category, and selected letter
   const filteredTerms = financialTerms.filter(term => {
     const matchesSearch = term.term.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           term.definition.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'All Categories' || term.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesLetter = selectedLetter === '' || term.term.charAt(0).toUpperCase() === selectedLetter;
+    return matchesSearch && matchesCategory && matchesLetter;
   });
+
+  // Stick the navigation menu to the top when scrolling
+  useEffect(() => {
+    const handleScroll = () => {
+      if (topOffsetRef.current && navRef.current) {
+        const offsetElement = topOffsetRef.current as HTMLDivElement;
+        const navTop = offsetElement.getBoundingClientRect().top;
+        setIsNavSticky(navTop <= 0);
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <MainLayout>
-      <div className="py-6">
+      <div className="py-6 container mx-auto">
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-2">
             <Link href="/academy" className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'} hover:underline flex items-center`}>
@@ -167,108 +188,127 @@ export default function FinancialTermsPage() {
             A comprehensive guide to financial and investment terminology
           </p>
         </div>
-
-        {/* Search and Filter */}
-        <Card className={`mb-8 ${isDark ? 'bg-gray-800 border-gray-700' : ''}`}>
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Search financial terms..."
-                    className={`pl-9 ${isDark ? 'bg-gray-700 border-gray-600' : ''}`}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div>
-                <select
-                  className={`w-full h-10 rounded-md border px-3 py-2 text-sm ${
-                    isDark 
-                      ? 'bg-gray-700 border-gray-600 text-white' 
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  {categories.map((category) => (
-                    <option key={category} value={category}>{category}</option>
-                  ))}
-                </select>
-              </div>
+        
+        {/* Spacer div to calculate when to make nav sticky */}
+        <div ref={topOffsetRef} />
+        
+        {/* Floating Search and Navigation Bar */}
+        <div 
+          ref={navRef}
+          className={`${isDark ? 'bg-gray-800' : 'bg-white'} px-6 py-4 mb-8 rounded-lg shadow-md transition-all z-10
+            ${isNavSticky ? 'sticky top-0 left-0 right-0 shadow-lg' : ''}`}
+        >
+          <div className="flex flex-col md:flex-row gap-4 items-center mb-4">
+            <div className="w-full md:w-1/2 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search financial terms..."
+                className={`pl-9 ${isDark ? 'bg-gray-700 border-gray-600' : ''}`}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Terms List */}
-        <div className="space-y-6">
-          {filteredTerms.length > 0 ? (
-            filteredTerms.map((term) => (
-              <Card key={term.id} className={isDark ? 'bg-gray-800 border-gray-700' : ''}>
-                <CardContent className="p-6">
-                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                    <div className="flex-grow">
-                      <div className="flex items-center mb-2">
-                        <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                          {term.term}
-                        </h2>
-                        <span className={`ml-3 text-xs px-2 py-1 rounded-full ${
-                          isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'
-                        }`}>
-                          {term.category}
-                        </span>
-                      </div>
-                      <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                        {term.definition}
-                      </p>
-                      
-                      {term.related && term.related.length > 0 && (
-                        <div>
-                          <h3 className={`text-sm font-medium mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                            Related Terms:
-                          </h3>
-                          <div className="flex flex-wrap gap-2">
-                            {term.related.map((relatedTerm) => (
-                              <span 
-                                key={relatedTerm}
-                                className={`text-xs px-2 py-1 rounded-full ${
-                                  isDark ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-100 text-blue-700'
-                                }`}
-                              >
-                                {relatedTerm}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {term.id === 'factor-investing' && (
-                      <div className="mt-2 md:mt-0">
-                        <Link href="/academy/methodology">
-                          <Button variant="outline" size="sm" className="whitespace-nowrap">
-                            Learn More
-                            <ArrowRight className="ml-2 h-3 w-3" />
-                          </Button>
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          ) : (
-            <Card className={isDark ? 'bg-gray-800 border-gray-700' : ''}>
-              <CardContent className="p-6 text-center">
-                <p className={isDark ? 'text-gray-300' : 'text-gray-700'}>
-                  No terms found matching your search criteria.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+            <div className="w-full md:w-1/2">
+              <select
+                className={`w-full h-10 rounded-md border px-3 py-2 text-sm ${
+                  isDark 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                {categories.map((category) => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          
+          {/* A-Z navigation */}
+          <div className="flex flex-wrap justify-center gap-1 mt-2">
+            {allLetters.map(letter => (
+              <button
+                key={letter}
+                onClick={() => setSelectedLetter(selectedLetter === letter ? '' : letter)}
+                className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-medium transition-colors
+                  ${alphabet.includes(letter)
+                    ? (letter === selectedLetter
+                      ? (isDark ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white')
+                      : (isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-800'))
+                    : (isDark ? 'text-gray-500 cursor-not-allowed' : 'text-gray-400 cursor-not-allowed')
+                  }`}
+                disabled={!alphabet.includes(letter)}
+              >
+                {letter}
+              </button>
+            ))}
+            {selectedLetter && (
+              <button
+                onClick={() => setSelectedLetter('')}
+                className={`ml-2 px-2 py-1 text-xs rounded ${
+                  isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Two-column Terms List */}
+        {filteredTerms.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-0">
+            {filteredTerms.map((term, index) => (
+              <div key={term.id} className={`py-4 ${isDark ? 'border-gray-700' : 'border-gray-200'} ${index < filteredTerms.length - 1 ? 'border-b' : ''}`}>
+                <div className="mb-1 flex items-center">
+                  <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {term.term}
+                  </h2>
+                  <span className={`ml-3 text-xs px-2 py-0.5 rounded-full ${
+                    isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'
+                  }`}>
+                    {term.category}
+                  </span>
+                </div>
+                <p className={`mb-2 text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  {term.definition}
+                </p>
+                
+                {term.related && term.related.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {term.related.map((relatedTerm) => (
+                      <span 
+                        key={relatedTerm}
+                        className={`text-xs px-2 py-0.5 rounded-full ${
+                          isDark ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-100 text-blue-700'
+                        }`}
+                      >
+                        {relatedTerm}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                
+                {term.id === 'factor-investing' && (
+                  <div className="mt-2">
+                    <Link href="/academy/methodology">
+                      <span className={`text-sm font-medium ${
+                        isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'
+                      } hover:underline`}>
+                        Learn more about factor investing
+                      </span>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={`text-center py-12 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p>No terms found matching your criteria.</p>
+          </div>
+        )}
       </div>
     </MainLayout>
   );
