@@ -275,21 +275,6 @@ export default function FinancialTermsPage() {
                   {term.definition}
                 </p>
                 
-                {term.related && term.related.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {term.related.map((relatedTerm) => (
-                      <span 
-                        key={relatedTerm}
-                        className={`text-xs px-2 py-0.5 rounded-full ${
-                          isDark ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-100 text-blue-700'
-                        }`}
-                      >
-                        {relatedTerm}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                
                 {term.id === 'factor-investing' && (
                   <div className="mt-2">
                     <Link href="/academy/methodology">
