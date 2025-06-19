@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AIScenario } from '../types';
-import { generateMockAIValuation, generateMockAIScenario } from '../services/mockData';
+import { generateMockAIValuation, generateMockAIScenario } from '@/mock-data/stock/stockData';
+import { generateStockAIValuation } from '@/api/v1/stock/service';
 
 interface UseAIValuationResult {
   aiValuation: string | null;
@@ -61,23 +62,14 @@ export function useAIValuation(symbol: string): UseAIValuationResult {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       try {
-        // Call the AI valuation API
-        const response = await fetch(`/api/ai-valuation?symbol=${symbol}`, {
-          // Add a timeout to the fetch request
-          signal: AbortSignal.timeout(10000) // 10 second timeout
-        });
+        // Call the AI valuation service
+        const result = await generateStockAIValuation(symbol);
         
-        if (!response.ok) {
-          throw new Error(`API request failed with status ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.status === 'success') {
-          setAIValuation(data.valuation);
-          setAIScenario(data.scenario);
+        if (result.success && result.data) {
+          setAIValuation(result.data.reasoning);
+          setAIScenario(result.data.scenario);
         } else {
-          throw new Error(data.message || 'Failed to generate AI valuation');
+          throw new Error(result.message || 'Failed to generate AI valuation');
         }
       } catch (apiError: any) {
         console.error('API error, using mock data instead:', apiError);

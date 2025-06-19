@@ -5,6 +5,22 @@ import Link from 'next/link';
 import { ThemeToggle } from '@/app/components/ui/theme-toggle';
 import { useTheme } from '@/app/context/ThemeProvider';
 import { useState, useEffect, useRef } from 'react';
+import {
+  Sun,
+  Moon,
+  Menu,
+  X,
+  Search,
+  ChevronDown,
+  BarChart2,
+  BookOpen,
+  Globe,
+  LineChart,
+  Briefcase,
+  Filter,
+  PieChart,
+  LucideIcon
+} from 'lucide-react';
 
 type SearchResult = {
   title: string;
@@ -25,12 +41,24 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const [showAcademyDropdown, setShowAcademyDropdown] = useState(false);
+  const academyDropdownRef = useRef<HTMLDivElement>(null);
+  const [showPortfolioDropdown, setShowPortfolioDropdown] = useState(false);
+  const portfolioDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Handle clicks outside of the search results to close the dropdown
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowResults(false);
+      }
+      
+      if (academyDropdownRef.current && !academyDropdownRef.current.contains(event.target as Node)) {
+        setShowAcademyDropdown(false);
+      }
+      
+      if (portfolioDropdownRef.current && !portfolioDropdownRef.current.contains(event.target as Node)) {
+        setShowPortfolioDropdown(false);
       }
     }
     
@@ -79,14 +107,33 @@ export default function MainLayout({ children }: MainLayoutProps) {
     setSearchQuery('');
   };
 
+  const toggleAcademyDropdown = () => {
+    setShowAcademyDropdown(!showAcademyDropdown);
+  };
+  
+  const togglePortfolioDropdown = () => {
+    setShowPortfolioDropdown(!showPortfolioDropdown);
+  };
+
   const navItems = [
     { name: 'Equities', path: '/stock' },
     { name: 'Screener', path: '/screener' },
     { name: 'Markets', path: '/markets' },
-    { name: 'Portfolio', path: '/portfolio' },
+    // Portfolio is now handled separately
     { name: 'Macro', path: '/macro' },
     { name: 'Charting', path: '/charting' },
-    { name: 'Analysis', path: '/analysis' },
+    { name: 'Insights', path: '/insights' },
+  ];
+  
+  const portfolioItems = [
+    { name: 'Model Portfolios', path: '/portfolio' },
+    { name: 'Factor Performance', path: '/portfolio/factor_performance' },
+    { name: 'Portfolio Analysis', path: '/portfolio-analysis' },
+  ];
+
+  const academyItems = [
+    { name: 'Methodology', path: '/academy/methodology' },
+    { name: 'Financial Terms', path: '/academy/financial-terms' },
   ];
 
   return (
@@ -176,6 +223,112 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 {item.name}
               </Link>
             ))}
+            
+            {/* Portfolio Dropdown */}
+            <div className="relative" ref={portfolioDropdownRef}>
+              <button 
+                onClick={togglePortfolioDropdown}
+                className={`nav-link text-sm flex items-center ${
+                  (pathname && pathname.startsWith('/portfolio')) || pathname === '/portfolio-analysis' ? 'active' : ''
+                } ${
+                  theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-300 hover:text-white'
+                }`}
+              >
+                Portfolio
+                <span className="ml-1 inline-block">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="10" 
+                    height="10" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                    className={`transition-transform duration-200 ${showPortfolioDropdown ? 'rotate-180' : ''}`}
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </span>
+              </button>
+              
+              {showPortfolioDropdown && (
+                <div className={`absolute left-0 mt-1 py-1 w-48 rounded-md shadow-lg z-10 ${
+                  theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
+                }`}>
+                  {portfolioItems.map((item) => (
+                    <Link
+                      key={item.path}
+                      href={item.path}
+                      className={`block px-4 py-2 text-sm ${
+                        pathname === item.path ? (
+                          theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'
+                        ) : (
+                          theme === 'dark' ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                        )
+                      }`}
+                      onClick={() => setShowPortfolioDropdown(false)}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Academy Dropdown */}
+            <div className="relative" ref={academyDropdownRef}>
+              <button 
+                onClick={toggleAcademyDropdown}
+                className={`nav-link text-sm flex items-center ${
+                  pathname && pathname.startsWith('/academy') ? 'active' : ''
+                } ${
+                  theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-300 hover:text-white'
+                }`}
+              >
+                Academy
+                <span className="ml-1 inline-block">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="10" 
+                    height="10" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                    className={`transition-transform duration-200 ${showAcademyDropdown ? 'rotate-180' : ''}`}
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </span>
+              </button>
+              
+              {showAcademyDropdown && (
+                <div className={`absolute left-0 mt-1 py-1 w-48 rounded-md shadow-lg z-10 ${
+                  theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
+                }`}>
+                  {academyItems.map((item) => (
+                    <Link
+                      key={item.path}
+                      href={item.path}
+                      className={`block px-4 py-2 text-sm ${
+                        pathname === item.path ? (
+                          theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'
+                        ) : (
+                          theme === 'dark' ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                        )
+                      }`}
+                      onClick={() => setShowAcademyDropdown(false)}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </nav>
@@ -281,7 +434,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
             <div>
               <h5 className={`text-lg font-bold mb-4 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>Resources</h5>
               <ul className="space-y-2">
-                <li><a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'}`}>Learning Center</a></li>
+                <li><Link href="/academy/methodology" className={`${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'}`}>Learning Center</Link></li>
                 <li><a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'}`}>Market News</a></li>
                 <li><a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'}`}>Economic Calendar</a></li>
                 <li><a href="#" className={`${theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'}`}>API Documentation</a></li>

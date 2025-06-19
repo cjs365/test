@@ -6,12 +6,14 @@ type Theme = 'dark' | 'light';
 
 type ThemeContextType = {
   theme: Theme;
+  isDark: boolean;
   toggleTheme: () => void;
 };
 
 // Create context with default values to avoid undefined errors during SSR
 const ThemeContext = createContext<ThemeContextType>({
   theme: 'light',
+  isDark: false,
   toggleTheme: () => null
 });
 
@@ -79,6 +81,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const contextValue = {
     theme,
+    isDark: theme === 'dark',
     toggleTheme
   };
 

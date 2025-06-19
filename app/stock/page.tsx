@@ -197,7 +197,7 @@ export default function EquitiesPage() {
           <section className="mb-8">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-sm font-bold uppercase tracking-wider">Market Analysis</h2>
-              <Link href="/analysis" className="text-xs text-blue-600 hover:text-blue-700 font-medium uppercase tracking-wider">
+              <Link href="/insights" className="text-xs text-blue-600 hover:text-blue-700 font-medium uppercase tracking-wider">
                 View All
               </Link>
             </div>

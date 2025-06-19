@@ -1,10 +1,139 @@
-# Stock Modelling Page
+# Stock Valuation Module
 
-This module provides a comprehensive stock modelling and valuation interface. It allows users to analyze financial data, create valuation scenarios, and perform sensitivity analysis.
+This module provides a comprehensive stock valuation tool that allows users to:
+1. View financial data for a specific stock
+2. Edit assumptions and forecast data
+3. Calculate intrinsic value using DCF (Discounted Cash Flow) methodology
+4. Perform sensitivity analysis
+5. Generate AI-powered valuation insights
 
-## Mock Data Implementation
+## Directory Structure
 
-The modelling page has been enhanced with mock data capabilities to ensure the frontend can be deployed and demonstrated without requiring a working backend API. Here's how it works:
+```
+modelling/
+  ├── components/            - UI components for the valuation tool
+  │   ├── AIValuation.tsx    - AI-powered valuation insights component
+  │   ├── DataTable.tsx      - Editable financial data table
+  │   ├── ScenarioManager.tsx - Manager for different valuation scenarios
+  │   ├── SensitivityAnalysis.tsx - Sensitivity analysis visualization
+  │   ├── ValuationResults.tsx - Results display component
+  │   └── charts/            - Chart components for data visualization
+  │       ├── FCFChart.tsx   - Free Cash Flow chart
+  │       └── MetricsChart.tsx - Financial metrics charts
+  ├── hooks/                 - Custom React hooks
+  │   ├── useAIValuation.ts  - Hook for AI valuation functionality
+  │   ├── useStockValuation.ts - Hook for fetching/processing stock data
+  │   └── useValuationCalculator.ts - Hook for valuation calculations
+  ├── types.ts               - TypeScript interfaces and types
+  └── utils/                 - Utility functions
+      ├── calculations.ts    - Financial calculation functions
+      └── formatters.ts      - Data formatting utilities
+```
+
+## External Dependencies
+
+The module relies on the following centralized services:
+
+```
+mock-data/stock/
+  ├── stockData.ts           - Mock data generation for stocks
+  ├── stockService.ts        - API services for stock data
+  └── aiService.ts           - AI valuation services
+```
+
+```
+api/
+  ├── ai-valuation/          - AI valuation API endpoints
+  └── v1/
+      └── stock-valuation/   - Stock valuation API endpoints
+```
+
+## Data Flow
+
+1. The `useStockValuation` hook fetches data from the API or falls back to mock data
+2. The `useValuationCalculator` hook processes this data to calculate valuation metrics
+3. The `useAIValuation` hook fetches AI-generated insights and scenarios
+4. Components render the data and provide user interaction
+
+## API Endpoints
+
+### Stock Valuation API
+
+- `GET /api/v1/stock-valuation/[symbol]` - Get financial data for a stock
+- `POST /api/v1/stock-valuation/[symbol]` - Calculate valuation based on provided data
+- `POST /api/v1/stock/sensitivity` - Generate sensitivity analysis data
+
+### AI Valuation API
+
+- `GET /api/ai-valuation?symbol=[symbol]` - Generate AI-powered valuation insights
+
+## Key Features
+
+1. **Interactive Data Table**: Users can edit financial data and see real-time updates to valuation
+2. **Multiple Valuation Methods**: Supports DCF valuation with configurable parameters
+3. **Scenario Management**: Users can create and compare different valuation scenarios
+4. **Sensitivity Analysis**: Visualize how changes in key assumptions affect valuation
+5. **AI Insights**: Get AI-generated valuation insights and scenario recommendations
+
+## Usage Example
+
+```tsx
+import React from 'react';
+import { useStockValuation } from './hooks/useStockValuation';
+import { useValuationCalculator } from './hooks/useValuationCalculator';
+import DataTable from './components/DataTable';
+import ValuationResults from './components/ValuationResults';
+
+const StockValuation = ({ symbol }) => {
+  const { tableData, headers, valuationVars, isLoading } = useStockValuation(symbol);
+  const { 
+    enterpriseValue, 
+    equityValue, 
+    calculationSteps,
+    handleDataChange 
+  } = useValuationCalculator(tableData, valuationVars, headers);
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return (
+    <div>
+      <DataTable 
+        data={tableData} 
+        headers={headers} 
+        onDataChange={handleDataChange} 
+      />
+      <ValuationResults 
+        enterpriseValue={enterpriseValue}
+        equityValue={equityValue}
+        calculationSteps={calculationSteps}
+      />
+    </div>
+  );
+};
+
+export default StockValuation;
+```
+
+## API and Mock Data Structure
+
+The modelling page has been enhanced with a centralized API and mock data structure:
+
+### API Endpoints
+
+API endpoints have been centralized and organized in the following structure:
+- `/api/v1/stock/financial` - Financial data API endpoint
+- `/api/v1/stock-valuation/[symbol]` - Stock valuation API endpoint
+- `/api/v1/stock-valuation/[symbol]/calculate` - Valuation calculation endpoint
+- `/api/ai-valuation` - AI-powered valuation analysis endpoint
+
+### Mock Data Organization
+
+Mock data has been organized in the following structure:
+- `/mock-data/stock/financialData.ts` - Financial data mock implementation
+- `/mock-data/stock/stockData.ts` - Stock data and valuation mock implementation
+- `/mock-data/portfolio/portfolioData.ts` - Portfolio data mock implementation
+- `/mock-data/portfolio/portfolioService.ts` - Portfolio service mock implementation
+- `/mock-data/screener/screenerData.ts` - Screener data mock implementation
 
 ### Mock Data Generation
 
@@ -15,7 +144,7 @@ Mock data is generated in the following scenarios:
 
 ### Mock Data Services
 
-The mock data implementation is located in `services/mockData.ts` and includes:
+The mock data implementation is located in `mock-data/stock/stockData.ts` and includes:
 
 - `generateMockData(symbol)`: Creates realistic financial data for a stock
 - `generateMockAIValuation(symbol)`: Generates AI analysis text
@@ -80,5 +209,15 @@ To deploy the frontend for external viewing:
 
 If you need to modify the mock data behavior:
 
-1. Edit the functions in `services/mockData.ts`
+1. Edit the functions in the appropriate mock data files in `/mock-data/` directory
 2. The hooks in `hooks/` directory contain the logic for falling back to mock data when APIs fail 
+
+## Utility Functions
+
+The project includes several utility functions for calculations:
+
+- `calculateFCF()`: Calculates Free Cash Flow (supports both numbers and objects)
+- `calculateGrowthRate()`: Calculates growth rates (supports both numbers and objects)
+- `calculateEnterpriseValue()`: Calculates Enterprise Value
+- `calculateEquityValue()`: Calculates Equity Value
+- `calculatePricePerShare()`: Calculates Price per Share 

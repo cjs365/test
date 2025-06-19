@@ -4,13 +4,15 @@ import { ScreenerResult, ColumnType } from '@/app/types/screener';
 import { Button } from '@/app/components/ui/button';
 import Link from 'next/link';
 import { useTheme } from '@/app/context/ThemeProvider';
+import { Edit } from 'lucide-react';
 
 type ScreenerResultsProps = {
   results: ScreenerResult[];
   columns: ColumnType[];
+  onEditView?: () => void;
 };
 
-export default function ScreenerResults({ results, columns }: ScreenerResultsProps) {
+export default function ScreenerResults({ results, columns, onEditView }: ScreenerResultsProps) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -22,8 +24,12 @@ export default function ScreenerResults({ results, columns }: ScreenerResultsPro
             {results.length} stocks match your criteria
           </p>
         </div>
-        <Button className={`text-white text-xs h-7 px-3 py-0 ${isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'}`}>
-          Export
+        <Button 
+          onClick={onEditView}
+          className={`text-white text-xs h-7 px-3 py-0 ${isDark ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+        >
+          <Edit className="h-3 w-3 mr-1" />
+          Edit View
         </Button>
       </div>
 

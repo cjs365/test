@@ -11,7 +11,7 @@ import {
   getYearsFromData,
   getForecastYearsFromData,
   ReportType
-} from './api';
+} from '@/app/stock/[symbol]/financials/api';
 
 type StatementType = 'Income Statement' | 'Balance Sheet' | 'Cash Flow';
 type Period = 'Annual' | 'TTM';

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import StockLayout from '@/app/components/layout/StockLayout';
 import { TableData, ValuationVariables, AIScenario, Scenario, SensitivityData, SensitivityPoint } from './types';
 import {
@@ -13,8 +13,7 @@ import {
   calculateGrowthRate
 } from './utils/calculations';
 import { formatLargeNumber, determineUnit, formatWithCommas } from './utils/formatters';
-import { fetchSensitivityData, SensitivityResult } from './services/api';
-import { generateMockSensitivityData } from './services/mockData';
+import { generateMockSensitivityData } from '@/mock-data/stock/stockData';
 
 // Component imports
 import DataTable from './components/DataTable';
@@ -30,6 +29,12 @@ import FCFChart from './components/charts/FCFChart';
 import { useStockValuation } from './hooks/useStockValuation';
 import { useAIValuation } from './hooks/useAIValuation';
 import { useValuationCalculator } from './hooks/useValuationCalculator';
+
+// Define the SensitivityResult interface
+interface SensitivityResult {
+  status: string;
+  matrix: string;
+}
 
 export default function ModellingPage({ params }: { params: { symbol: string } }) {
   // Use the stock valuation hook
@@ -426,12 +431,26 @@ export default function ModellingPage({ params }: { params: { symbol: string } }
     // Sensitivity matrix generation function using API
   const generateSensitivityMatrix = async () => {
     try {
-      // Show loading state
       console.log('Generating sensitivity matrix...');
       
       try {
         // Call the API to get sensitivity data
-        const result = await fetchSensitivityData(params.symbol, localTableData, localValuationVars);
+        const response = await fetch(`/api/v1/stock/sensitivity?symbol=${params.symbol}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            tableData: localTableData,
+            valuationVars: localValuationVars
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+        
+        const result: SensitivityResult = await response.json();
         
         if (result && result.status === 'success' && result.matrix) {
           processSensitivityMatrix(result);

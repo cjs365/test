@@ -21,6 +21,35 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/methodology',
+        destination: '/academy/methodology',
+        permanent: true,
+      },
+      {
+        source: '/api/portfolios',
+        destination: '/api/v1/portfolios',
+        permanent: false,
+      },
+      {
+        source: '/api/portfolios/:ticker',
+        destination: '/api/v1/portfolios/:ticker',
+        permanent: false,
+      },
+      {
+        source: '/api/portfolios/:ticker/holdings',
+        destination: '/api/v1/portfolios/:ticker/holdings',
+        permanent: false,
+      },
+      {
+        source: '/api/portfolios/:ticker/factors',
+        destination: '/api/v1/portfolios/:ticker/factors',
+        permanent: false,
+      },
+    ];
+  },
 }
 
 module.exports = nextConfig 

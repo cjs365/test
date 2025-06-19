@@ -5,55 +5,17 @@ import MainLayout from '@/app/components/layout/MainLayout';
 import UniverseSelector from '@/app/components/screener/UniverseSelector';
 import CriteriaBuilder from '@/app/components/screener/CriteriaBuilder';
 import ScreenerResults from '@/app/components/screener/ScreenerResults';
+import EditView from '@/app/components/screener/EditView';
 import { Criterion, ScreenerResult, MetricType, ColumnType, Operator } from '@/app/types/screener';
 import { Button } from '@/app/components/ui/button';
 import { TabsList, TabsTrigger, Tabs, TabsContent } from '@/app/components/ui/tabs';
 import { ChevronDown, ChevronUp, Sparkles, ChevronLeft, ChevronRight, Filter, Save } from 'lucide-react';
 import { Input } from '@/app/components/ui/input';
 import { useTheme } from '@/app/context/ThemeProvider';
-
-// Mock saved screens
-const savedScreens = [
-  {
-    id: 1,
-    name: 'High Dividend Stocks',
-    description: 'US stocks with dividend yield > 4% and P/E < 20',
-    criteria: [
-      { metric: 'Dividend Yield' as MetricType, operator: 'greater_than' as Operator, value1: 4 },
-      { metric: 'P/E Ratio' as MetricType, operator: 'less_than' as Operator, value1: 20 },
-    ] as Criterion[],
-    country: 'US',
-    sector: null,
-  },
-  {
-    id: 2,
-    name: 'Growth Tech Companies',
-    description: 'Technology sector with high revenue growth',
-    criteria: [
-      { metric: 'Revenue Growth' as MetricType, operator: 'greater_than' as Operator, value1: 20 },
-      { metric: 'Market Cap' as MetricType, operator: 'greater_than' as Operator, value1: 1000 },
-    ] as Criterion[],
-    country: 'US',
-    sector: 'technology',
-  },
-  {
-    id: 3,
-    name: 'Complex Quality Screen',
-    description: 'Multi-factor screen for quality stocks',
-    criteria: [
-      { metric: 'P/E Ratio' as MetricType, operator: 'less_than' as Operator, value1: 25 },
-      { metric: 'Dividend Yield' as MetricType, operator: 'greater_than' as Operator, value1: 2 },
-      { metric: 'Revenue Growth' as MetricType, operator: 'greater_than' as Operator, value1: 10 },
-      { metric: 'Beta' as MetricType, operator: 'less_than' as Operator, value1: 1.2 },
-      { metric: 'Market Cap' as MetricType, operator: 'greater_than' as Operator, value1: 500 },
-    ] as Criterion[],
-    country: 'US',
-    sector: null,
-  },
-];
+import { savedScreens, mockResults } from '@/mock-data/screener/screenerData';
 
 // Column configurations
-const columnConfigs = [
+const columnConfigsData = [
   {
     id: 1,
     name: 'Default View',
@@ -68,40 +30,6 @@ const columnConfigs = [
     id: 3,
     name: 'Value Metrics',
     columns: ['Symbol', 'Name', 'P/E Ratio', 'Dividend Yield', 'Market Cap', 'Beta'] as ColumnType[],
-  },
-];
-
-// Mock data for demonstration
-const mockResults: ScreenerResult[] = [
-  {
-    symbol: 'TEN',
-    name: 'Tsakos Energy Navigation Ltd.',
-    metrics: {
-      'Dividend Yield': 10.0,
-      'P/E Ratio': 3.7,
-      'Market Cap': 543.5,
-      'Beta': -0.15,
-    },
-  },
-  {
-    symbol: 'KREF',
-    name: 'KKR Real Estate Finance Trust Inc.',
-    metrics: {
-      'Dividend Yield': 9.8,
-      'P/E Ratio': 8.2,
-      'Market Cap': 789.3,
-      'Beta': 0.45,
-    },
-  },
-  {
-    symbol: 'NLY',
-    name: 'Annaly Capital Management Inc.',
-    metrics: {
-      'Dividend Yield': 8.9,
-      'P/E Ratio': 12.4,
-      'Market Cap': 1243.8,
-      'Beta': 0.78,
-    },
   },
 ];
 
@@ -158,11 +86,13 @@ export default function ScreenerPage() {
       value1: 0,
     } as Criterion,
   ]);
+  const [columnConfigs, setColumnConfigs] = useState(columnConfigsData);
   const [selectedColumnConfig, setSelectedColumnConfig] = useState(columnConfigs[0]);
   const [criteriaExpanded, setCriteriaExpanded] = useState(true);
   const [aiPrompt, setAiPrompt] = useState('');
   const viewsScrollRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
+  const [showEditView, setShowEditView] = useState(false);
 
   const isDark = theme === 'dark';
 
@@ -237,6 +167,56 @@ export default function ScreenerPage() {
       const scrollAmount = direction === 'left' ? -200 : 200;
       viewsScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
+  };
+
+  const handleSaveView = (name: string, columns: ColumnType[]) => {
+    // Find if we already have a config with this name
+    const existingConfigIndex = columnConfigs.findIndex(config => config.name === name);
+    
+    if (existingConfigIndex >= 0) {
+      // Update existing config
+      const updatedConfigs = [...columnConfigs];
+      updatedConfigs[existingConfigIndex] = {
+        ...updatedConfigs[existingConfigIndex],
+        columns
+      };
+      // Update the selected config if it was the one being edited
+      if (selectedColumnConfig.id === updatedConfigs[existingConfigIndex].id) {
+        setSelectedColumnConfig(updatedConfigs[existingConfigIndex]);
+      }
+    } else {
+      // Create new config
+      const newConfig = {
+        id: Math.max(...columnConfigs.map(c => c.id)) + 1,
+        name,
+        columns
+      };
+      const updatedConfigs = [...columnConfigs, newConfig];
+      setSelectedColumnConfig(newConfig);
+    }
+    
+    setShowEditView(false);
+  };
+
+  const handleDeleteView = () => {
+    // Remove the current view from columnConfigs
+    const updatedConfigs = columnConfigs.filter(config => config.id !== selectedColumnConfig.id);
+    
+    // If we deleted the last config, create a default one
+    if (updatedConfigs.length === 0) {
+      updatedConfigs.push({
+        id: 1,
+        name: 'Default View',
+        columns: ['Symbol', 'Name', 'Dividend Yield', 'P/E Ratio', 'Market Cap', 'Beta'] as ColumnType[]
+      });
+    }
+    
+    // Update the columnConfigs state
+    setColumnConfigs(updatedConfigs);
+    
+    // Select the first available config
+    setSelectedColumnConfig(updatedConfigs[0]);
+    setShowEditView(false);
   };
 
   return (
@@ -438,7 +418,10 @@ export default function ScreenerPage() {
                       {config.name}
                     </button>
                   ))}
-                  <button className={`px-3 py-1 whitespace-nowrap text-xs font-medium ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'}`}>
+                  <button 
+                    className={`px-3 py-1 whitespace-nowrap text-xs font-medium ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'}`}
+                    onClick={() => setShowEditView(true)}
+                  >
                     + New View
                   </button>
                 </div>
@@ -457,11 +440,24 @@ export default function ScreenerPage() {
               <ScreenerResults 
                 results={mockResults}
                 columns={selectedColumnConfig.columns}
+                onEditView={() => setShowEditView(true)}
               />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Edit View Modal */}
+      {showEditView && (
+        <EditView
+          onClose={() => setShowEditView(false)}
+          onSave={handleSaveView}
+          onDelete={handleDeleteView}
+          initialName={selectedColumnConfig.name}
+          initialColumns={selectedColumnConfig.columns}
+          isNew={false}
+        />
+      )}
     </MainLayout>
   );
 } 

@@ -861,11 +861,11 @@ export default function HomePage() {
               <h3 className={`text-xs font-bold uppercase tracking-wider ${
                 theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
               }`}>Educational Hub</h3>
-              <a href="#" className={`text-xs font-medium uppercase tracking-wider ${
+              <Link href="/academy" className={`text-xs font-medium uppercase tracking-wider ${
                 theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
               }`}>
                 View All
-              </a>
+              </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className={`p-3 ${
@@ -874,11 +874,11 @@ export default function HomePage() {
                 <div className="flex items-start">
                   <div className="flex-1">
                     <h4 className="text-sm font-bold mb-1">
-                      <a href="#" className={`${
+                      <Link href="/academy" className={`${
                         theme === 'dark' ? 'text-gray-100 hover:text-blue-400' : 'hover:text-blue-600'
                       }`}>
                         How is AROIC calculated?
-                      </a>
+                      </Link>
                     </h4>
                     <p className={`text-xs mb-2 ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
@@ -902,11 +902,11 @@ export default function HomePage() {
                 <div className="flex items-start">
                   <div className="flex-1">
                     <h4 className="text-sm font-bold mb-1">
-                      <a href="#" className={`${
+                      <Link href="/academy" className={`${
                         theme === 'dark' ? 'text-gray-100 hover:text-blue-400' : 'hover:text-blue-600'
                       }`}>
                         GAAP vs. Non-GAAP Earnings
-                      </a>
+                      </Link>
                     </h4>
                     <p className={`text-xs mb-2 ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
@@ -930,11 +930,11 @@ export default function HomePage() {
                 <div className="flex items-start">
                   <div className="flex-1">
                     <h4 className="text-sm font-bold mb-1">
-                      <a href="#" className={`${
+                      <Link href="/academy" className={`${
                         theme === 'dark' ? 'text-gray-100 hover:text-blue-400' : 'hover:text-blue-600'
                       }`}>
                         Understanding Economic Earnings
-                      </a>
+                      </Link>
                     </h4>
                     <p className={`text-xs mb-2 ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
@@ -958,11 +958,11 @@ export default function HomePage() {
                 <div className="flex items-start">
                   <div className="flex-1">
                     <h4 className="text-sm font-bold mb-1">
-                      <a href="#" className={`${
+                      <Link href="/academy" className={`${
                         theme === 'dark' ? 'text-gray-100 hover:text-blue-400' : 'hover:text-blue-600'
                       }`}>
                         Valuation Framework
-                      </a>
+                      </Link>
                     </h4>
                     <p className={`text-xs mb-2 ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-600'

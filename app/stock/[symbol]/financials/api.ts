@@ -20,7 +20,7 @@ export const fetchFinancialData = async (
 ): Promise<FinancialMetric[]> => {
   try {
     const response = await fetch(
-      `http://127.0.0.1:8000/api/v1/company_report/${symbol}?report_type=${reportType}`
+      `/api/v1/stock/${symbol}/financial?report_type=${reportType}`
     );
     
     if (!response.ok) {
@@ -63,7 +63,7 @@ export const fetchFinancialData = async (
     });
   } catch (error) {
     console.error(`Error fetching ${reportType} data:`, error);
-    return []; // Return empty array in case of error
+    return getFinancialData(); // Return fallback mock data in case of error
   }
 };
 

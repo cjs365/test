@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import {
   Table,
@@ -29,54 +29,42 @@ import {
   BarChart,
   Bar,
   XAxis,
-  YAxis
+  YAxis,
+  ReferenceLine
 } from 'recharts';
-import { ArrowUp, ArrowDown, ArrowRight } from 'lucide-react';
+import { ArrowUp, ArrowDown, ArrowRight, Loader2 } from 'lucide-react';
+import { portfolioService } from '@/api/v1/portfolios/service';
 
-// Mock holdings data with multiple periods
-const mockHoldingsData = {
-  dates: ['2024-06-30', '2024-03-31', '2023-12-31', '2023-09-30', '2023-06-30'],
-  holdings: {
-    '2024-06-30': [
-      { symbol: 'NVDA', name: 'NVIDIA Corporation', sector: 'Information Technology', weight: 8.5, shares: 16500, price: 123.45, marketValue: 2036925, change: 'new' },
-      { symbol: 'MSFT', name: 'Microsoft Corporation', sector: 'Information Technology', weight: 7.8, shares: 14200, price: 432.65, marketValue: 1874625, change: 'up' },
-      { symbol: 'AAPL', name: 'Apple Inc.', sector: 'Information Technology', weight: 6.9, shares: 22400, price: 231.75, marketValue: 1656750, change: 'down' },
-      { symbol: 'AMZN', name: 'Amazon.com Inc.', sector: 'Consumer Discretionary', weight: 5.7, shares: 9800, price: 178.45, marketValue: 1367750, change: 'unchanged' },
-      { symbol: 'GOOGL', name: 'Alphabet Inc. Class A', sector: 'Communication Services', weight: 5.2, shares: 6500, price: 187.65, marketValue: 1248500, change: 'up' },
-      { symbol: 'META', name: 'Meta Platforms Inc.', sector: 'Communication Services', weight: 4.8, shares: 7200, price: 477.50, marketValue: 1152000, change: 'unchanged' },
-      { symbol: 'AVGO', name: 'Broadcom Inc.', sector: 'Information Technology', weight: 4.2, shares: 3600, price: 876.35, marketValue: 1008500, change: 'new' },
-      { symbol: 'TSLA', name: 'Tesla Inc.', sector: 'Consumer Discretionary', weight: 3.5, shares: 11200, price: 233.75, marketValue: 840000, change: 'down' },
-      { symbol: 'ADBE', name: 'Adobe Inc.', sector: 'Information Technology', weight: 3.1, shares: 4800, price: 510.25, marketValue: 744000, change: 'unchanged' },
-      { symbol: 'CRM', name: 'Salesforce Inc.', sector: 'Information Technology', weight: 2.8, shares: 8900, price: 251.85, marketValue: 672000, change: 'up' },
-    ],
-    '2024-03-31': [
-      { symbol: 'AAPL', name: 'Apple Inc.', sector: 'Information Technology', weight: 8.2, shares: 24800, price: 218.75, marketValue: 1968750, change: 'unchanged' },
-      { symbol: 'MSFT', name: 'Microsoft Corporation', sector: 'Information Technology', weight: 7.4, shares: 12800, price: 410.65, marketValue: 1776000, change: 'up' },
-      { symbol: 'GOOGL', name: 'Alphabet Inc. Class A', sector: 'Communication Services', weight: 5.8, shares: 7200, price: 172.65, marketValue: 1392000, change: 'unchanged' },
-      { symbol: 'AMZN', name: 'Amazon.com Inc.', sector: 'Consumer Discretionary', weight: 5.7, shares: 9800, price: 168.75, marketValue: 1368000, change: 'unchanged' },
-      { symbol: 'META', name: 'Meta Platforms Inc.', sector: 'Communication Services', weight: 4.8, shares: 7200, price: 452.50, marketValue: 1152000, change: 'up' },
-      { symbol: 'TSLA', name: 'Tesla Inc.', sector: 'Consumer Discretionary', weight: 4.6, shares: 14400, price: 198.75, marketValue: 1104000, change: 'down' },
-      { symbol: 'ADBE', name: 'Adobe Inc.', sector: 'Information Technology', weight: 3.1, shares: 4800, price: 485.00, marketValue: 744000, change: 'unchanged' },
-      { symbol: 'CRM', name: 'Salesforce Inc.', sector: 'Information Technology', weight: 2.5, shares: 7800, price: 235.25, marketValue: 600000, change: 'up' },
-      { symbol: 'NFLX', name: 'Netflix Inc.', sector: 'Communication Services', weight: 2.4, shares: 3200, price: 456.25, marketValue: 576000, change: 'down' },
-      { symbol: 'CSCO', name: 'Cisco Systems Inc.', sector: 'Information Technology', weight: 2.1, shares: 25600, price: 49.75, marketValue: 504000, change: 'unchanged' },
-    ]
-  }
-};
+// Types
+interface HoldingData {
+  symbol: string;
+  name: string;
+  sector: string;
+  weight: number;
+  shares: number;
+  price: number;
+  marketValue: number;
+  change: string;
+}
 
-// Mock factor exposure data
-const mockFactorData = [
-  { name: 'Momentum', value: 1.24, color: '#2563EB' },
-  { name: 'Value', value: -0.45, color: '#F59E0B' },
-  { name: 'Size', value: 0.82, color: '#10B981' },
-  { name: 'Quality', value: 1.05, color: '#EF4444' },
-  { name: 'Volatility', value: -0.68, color: '#8B5CF6' },
-  { name: 'Growth', value: 1.35, color: '#EC4899' },
-  { name: 'Dividend Yield', value: -0.95, color: '#6366F1' }
-];
+interface HoldingsData {
+  dates: string[];
+  holdings: Record<string, HoldingData[]>;
+}
+
+interface FactorData {
+  name: string;
+  exposure: number;
+  benchmark: number;
+}
+
+interface FactorsData {
+  factors: FactorData[];
+}
 
 // Helper function to format currency values
-const formatCurrency = (value: number) => {
+const formatCurrency = (value: number | null | undefined) => {
+  if (typeof value !== 'number') return '$0.00';
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -86,7 +74,8 @@ const formatCurrency = (value: number) => {
 };
 
 // Helper function to format percentage values
-const formatPercent = (value: number) => {
+const formatPercent = (value: number | null | undefined) => {
+  if (typeof value !== 'number') return '0.0%';
   return `${value.toFixed(1)}%`;
 };
 
@@ -102,13 +91,83 @@ const ChangeIndicator = ({ change }: { change: string }) => {
   }
 };
 
-export default function HoldingsTab() {
+export default function HoldingsTab({ ticker }: { ticker: string }) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const [selectedDate, setSelectedDate] = useState(mockHoldingsData.dates[0]);
+  const [holdingsData, setHoldingsData] = useState<HoldingsData | null>(null);
+  const [factorData, setFactorData] = useState<FactorData[] | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch holdings data
+        const fetchedHoldingsData = await portfolioService.getPortfolioHoldings(ticker);
+        
+        // Fetch factor data
+        const fetchedFactorsData = await portfolioService.getPortfolioFactors(ticker);
+        
+        // Set the data
+        setHoldingsData(fetchedHoldingsData);
+        setFactorData(fetchedFactorsData.factors);
+        
+        // Set the selected date to the most recent one
+        if (fetchedHoldingsData && fetchedHoldingsData.dates.length > 0) {
+          setSelectedDate(fetchedHoldingsData.dates[0]);
+        }
+        
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching holdings data:', err);
+        setError('Failed to load holdings data. Please try again later.');
+        setLoading(false);
+      }
+    };
+    
+    if (ticker) {
+      fetchData();
+    }
+  }, [ticker]);
   
   // Get holdings for the selected date
-  const currentHoldings = mockHoldingsData.holdings[selectedDate as keyof typeof mockHoldingsData.holdings] || [];
+  const currentHoldings = holdingsData && selectedDate 
+    ? holdingsData.holdings[selectedDate as keyof typeof holdingsData.holdings] || []
+    : [];
+  
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[300px]">
+        <div className="text-center">
+          <Loader2 className={`h-8 w-8 animate-spin mx-auto mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`} />
+          <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+            Loading holdings data...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`p-4 rounded-lg ${isDark ? 'bg-red-900/30 text-red-200' : 'bg-red-50 text-red-800'}`}>
+        {error}
+      </div>
+    );
+  }
+
+  if (!holdingsData) {
+    return (
+      <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-gray-100'}`}>
+        <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
+          No holdings data available for this portfolio.
+        </p>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6">
@@ -123,7 +182,7 @@ export default function HoldingsTab() {
               <SelectValue placeholder="Select date" />
             </SelectTrigger>
             <SelectContent>
-              {mockHoldingsData.dates.map((date) => (
+              {holdingsData.dates.map((date) => (
                 <SelectItem key={date} value={date}>
                   {new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                 </SelectItem>
@@ -167,7 +226,7 @@ export default function HoldingsTab() {
                       <TableCell>{holding.name}</TableCell>
                       <TableCell>{holding.sector}</TableCell>
                       <TableCell className="text-right">{formatPercent(holding.weight)}</TableCell>
-                      <TableCell className="text-right">{holding.shares.toLocaleString()}</TableCell>
+                      <TableCell className="text-right">{typeof holding.shares === 'number' ? holding.shares.toLocaleString() : '0'}</TableCell>
                       <TableCell className="text-right">{formatCurrency(holding.price)}</TableCell>
                       <TableCell className="text-right">{formatCurrency(holding.marketValue)}</TableCell>
                       <TableCell className="text-center">
@@ -186,40 +245,104 @@ export default function HoldingsTab() {
         </div>
         
         <div>
-          <Card className={`p-4 shadow-none border-0 ${isDark ? 'bg-gray-800' : ''}`}>
-            <h3 className={`text-base font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Factor Exposure
-            </h3>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout="vertical"
-                  data={mockFactorData}
-                  margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
-                >
-                  <XAxis type="number" domain={[-1.5, 1.5]} />
-                  <YAxis dataKey="name" type="category" width={80} />
-                  <Tooltip 
-                    formatter={(value) => {
-                      const numValue = Number(value);
-                      return [`${numValue.toFixed(2)}`, 'Z-Score'];
+          {factorData && (
+            <Card className={`p-4 shadow-none border-0 ${isDark ? 'bg-gray-800' : ''}`}>
+              <h3 className={`text-base font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Factor Exposures
+              </h3>
+              <div className="h-[250px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout="vertical"
+                    data={factorData}
+                    margin={{
+                      top: 5,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
                     }}
-                  />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                    {mockFactorData.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={entry.value > 0 ? '#10B981' : '#EF4444'} 
+                  >
+                    <XAxis 
+                      type="number" 
+                      domain={[-2, 2]} 
+                      tickCount={5}
+                      tickFormatter={(value) => {
+                        if (typeof value === 'number') {
+                          return value.toFixed(1);
+                        }
+                        return String(value);
+                      }}
+                    />
+                    <YAxis 
+                      dataKey="name" 
+                      type="category" 
+                      width={80}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <Tooltip 
+                      formatter={(value) => {
+                        // Check if value is a number before using toFixed
+                        if (typeof value === 'number') {
+                          return [value.toFixed(2), 'Exposure'];
+                        }
+                        return [String(value), 'Exposure'];
+                      }}
+                      labelStyle={{ color: isDark ? '#e5e7eb' : '#111827' }}
+                      contentStyle={{ 
+                        backgroundColor: isDark ? '#374151' : '#ffffff',
+                        borderColor: isDark ? '#4b5563' : '#e5e7eb'
+                      }}
+                    />
+                    <Bar dataKey="exposure" radius={[0, 4, 4, 0]}>
+                      {factorData.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={entry.exposure > 0 ? '#10B981' : '#EF4444'} 
+                        />
+                      ))}
+                    </Bar>
+                    <ReferenceLine 
+                      x={0} 
+                      stroke={isDark ? "#6b7280" : "#9ca3af"} 
+                      strokeWidth={1} 
+                    />
+                    {/* Add benchmark reference lines */}
+                    {factorData.map((entry, index) => (
+                      <ReferenceLine 
+                        key={`benchmark-${index}`}
+                        y={entry.name}
+                        x={entry.benchmark}
+                        stroke="#3b82f6"
+                        strokeDasharray="3 3"
+                        isFront={true}
+                        strokeWidth={1.5}
                       />
                     ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className={`mt-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-              <p>Factor exposures shown as Z-scores relative to the benchmark.</p>
-            </div>
-          </Card>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex items-center justify-between mt-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-green-500 rounded-sm"></div>
+                    <span className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Positive</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-red-500 rounded-sm"></div>
+                    <span className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Negative</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-0.5 bg-blue-500 border-b border-blue-500 border-dashed"></div>
+                    <span className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Benchmark</span>
+                  </div>
+                </div>
+              </div>
+              <p className={`mt-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                Factor exposures show how the portfolio is positioned relative to the market.
+              </p>
+            </Card>
+          )}
         </div>
       </div>
     </div>

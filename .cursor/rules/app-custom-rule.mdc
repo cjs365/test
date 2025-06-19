@@ -1,6 +1,6 @@
 ---
-description: 
+description: Remember!!!Do not run the application after changes!!!
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
-Do not re-run "npm run dev" after changes. I will re-run manually.
+Remember!!!Do not run the application after changes!!!

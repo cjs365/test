@@ -36,12 +36,43 @@ export const calculateICChange = (currentIC: number, prevIC: number) => {
   return result;
 };
 
-export const calculateFCF = (earnings: number, icChange: number) => {
-  console.log(`calculateFCF: ${earnings} - ${icChange}`);
-  const result = earnings - icChange;
-  console.log(`calculateFCF result: ${result}`);
-  return result;
-};
+// Function overload signatures
+export function calculateFCF(earnings: number, icChange: number): number;
+export function calculateFCF(earnings: { [year: string]: number }, icChange: { [year: string]: number }): { [year: string]: number };
+
+// Implementation that handles both cases
+export function calculateFCF(
+  earnings: number | { [year: string]: number }, 
+  icChange: number | { [year: string]: number }
+): number | { [year: string]: number } {
+  // Check if inputs are objects
+  if (typeof earnings === 'object' && typeof icChange === 'object') {
+    console.log(`calculateFCF called with objects:`, { earnings, icChange });
+    const result: { [year: string]: number } = {};
+    
+    // Process each year in the earnings object
+    Object.keys(earnings).forEach(year => {
+      if (icChange[year] !== undefined) {
+        result[year] = earnings[year] - icChange[year];
+        console.log(`calculateFCF year ${year}: ${earnings[year]} - ${icChange[year]} = ${result[year]}`);
+      }
+    });
+    
+    return result;
+  }
+  
+  // If inputs are numbers, use the original implementation
+  if (typeof earnings === 'number' && typeof icChange === 'number') {
+    console.log(`calculateFCF: ${earnings} - ${icChange}`);
+    const result = earnings - icChange;
+    console.log(`calculateFCF result: ${result}`);
+    return result;
+  }
+  
+  // Handle mixed types by returning an empty object or 0
+  console.log(`calculateFCF called with mixed types, returning default value`);
+  return typeof earnings === 'object' ? {} : 0;
+}
 
 // Add calculation functions for valuation results
 export const calculateEnterpriseValue = (vars: ValuationVariables, fcf: { [year: string]: number }, headers: string[]) => {
@@ -85,14 +116,61 @@ export const calculatePricePerShare = (equityValue: number, vars: ValuationVaria
   return result;
 };
 
-// Add function to calculate growth rate
-export const calculateGrowthRate = (currentValue: number, previousValue: number) => {
-  console.log(`calculateGrowthRate: ((${currentValue} - ${previousValue}) / |${previousValue}|) * 100`);
-  if (previousValue === 0) {
-    console.log(`calculateGrowthRate result: 0 (previous value is 0)`);
-    return 0;
+// Function overload signatures for growth rate calculation
+export function calculateGrowthRate(currentValue: number, previousValue: number): number;
+export function calculateGrowthRate(values: { [year: string]: number }, years: string[]): { [year: string]: number };
+
+// Implementation that handles both cases
+export function calculateGrowthRate(
+  arg1: number | { [year: string]: number },
+  arg2: number | string[]
+): number | { [year: string]: number } {
+  // Check if calculating growth rate for objects (data across years)
+  if (typeof arg1 === 'object' && Array.isArray(arg2)) {
+    console.log(`calculateGrowthRate called with object and years array`);
+    const values = arg1;
+    const years = arg2;
+    const result: { [year: string]: number } = {};
+    
+    // Skip the first year as we need a previous value to calculate growth
+    for (let i = 1; i < years.length; i++) {
+      const currentYear = years[i];
+      const previousYear = years[i-1];
+      
+      if (values[currentYear] !== undefined && values[previousYear] !== undefined) {
+        const currentValue = values[currentYear];
+        const previousValue = values[previousYear];
+        
+        // Calculate growth rate using the base implementation
+        if (previousValue === 0) {
+          result[currentYear] = 0;
+        } else {
+          result[currentYear] = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
+        }
+        
+        console.log(`calculateGrowthRate year ${currentYear}: ((${currentValue} - ${previousValue}) / |${previousValue}|) * 100 = ${result[currentYear]}`);
+      }
+    }
+    
+    return result;
   }
-  const result = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
-  console.log(`calculateGrowthRate result: ${result}`);
-  return result;
-}; 
+  
+  // If inputs are numbers, use the original implementation
+  if (typeof arg1 === 'number' && typeof arg2 === 'number') {
+    const currentValue = arg1;
+    const previousValue = arg2;
+    
+    console.log(`calculateGrowthRate: ((${currentValue} - ${previousValue}) / |${previousValue}|) * 100`);
+    if (previousValue === 0) {
+      console.log(`calculateGrowthRate result: 0 (previous value is 0)`);
+      return 0;
+    }
+    const result = ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
+    console.log(`calculateGrowthRate result: ${result}`);
+    return result;
+  }
+  
+  // Handle mixed types by returning an empty object or 0
+  console.log(`calculateGrowthRate called with invalid argument types, returning default value`);
+  return typeof arg1 === 'object' ? {} : 0;
+} 

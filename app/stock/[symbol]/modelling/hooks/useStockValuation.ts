@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react';
-import { fetchStockValuationData, processStockValuationData } from '../services/api';
-import { generateMockData } from '../services/mockData';
+import { generateMockData } from '@/mock-data/stock/stockData';
 import { TableData, ValuationVariables } from '../types';
+
+interface ApiResponse {
+  status: string;
+  ric: string;
+  data: TableData;
+  headers: number[];
+  valuation_parameters: ValuationVariables;
+}
 
 interface UseStockValuationResult {
   headers: string[];
@@ -37,12 +44,24 @@ export function useStockValuation(symbol: string): UseStockValuationResult {
     
     try {
       // Try to fetch real data from API
-      const apiData = await fetchStockValuationData(symbol);
-      const processedData = processStockValuationData(apiData);
+      const response = await fetch(`/api/v1/stock/${symbol}/modelling`);
       
-      setHeaders(processedData.headers);
-      setTableData(processedData.tableData);
-      setValuationVars(processedData.valuationVars);
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const apiData: ApiResponse = await response.json();
+      
+      if (apiData.status !== 'success') {
+        throw new Error('API returned error status');
+      }
+      
+      // Convert numeric headers to strings
+      const stringHeaders = apiData.headers.map(year => year.toString());
+      
+      setHeaders(stringHeaders);
+      setTableData(apiData.data);
+      setValuationVars(apiData.valuation_parameters);
       setUseMockData(false);
     } catch (err: any) {
       // Log the error but don't fail - use mock data instead

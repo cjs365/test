@@ -6,8 +6,17 @@ import {
   calculatePricePerShare 
 } from '../utils/calculations';
 import { formatLargeNumber } from '../utils/formatters';
-import { calculateStockValuation, ValuationResult } from '../services/api';
-import { generateMockValuationResult } from '../services/mockData';
+import { generateMockValuationResult } from '@/mock-data/stock/stockData';
+
+// Define the ValuationResult interface
+export interface ValuationResult {
+  status: string;
+  ric: string;
+  result: {
+    'Enterprise Value': number;
+    'Calculated upside': number;
+  }
+}
 
 interface ValuationResults {
   enterpriseValue: number | null;
@@ -149,12 +158,29 @@ export function useValuationCalculator(
       console.log('Submitting valuation with variables:', varsToSubmit);
       
       try {
-        // Call the API service with a timeout
+        // Call the API endpoint with a timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
         
-        const result = await calculateStockValuation(symbol, dataToSubmit, varsToSubmit);
+        const response = await fetch(`/api/v1/stock/${symbol}/modelling/calculate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            tableData: dataToSubmit,
+            valuationVars: varsToSubmit
+          }),
+          signal: controller.signal
+        });
+        
         clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+        
+        const result: ValuationResult = await response.json();
         
         // Update state with API results
         setApiResult(result);

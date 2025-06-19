@@ -15,7 +15,13 @@ export type MetricType =
   | 'Price'
   | 'Volume'
   | 'EPS Growth'
-  | 'Revenue Growth';
+  | 'Revenue Growth'
+  | 'Dividend CAGR (5y)'
+  | 'Altman Z-Score'
+  | 'Asset Efficiency'
+  | 'Trading Price Standard Deviation'
+  | 'Beneish M-Score'
+  | 'Beta (5 Year)';
 
 export type ColumnType = MetricType | 'Symbol' | 'Name';
 
@@ -38,4 +44,29 @@ export type ScreenerResult = {
   metrics: {
     [key in MetricType]?: number;
   };
-}; 
+};
+
+// New types for the metrics API
+export type MetricCategory = 
+  | 'Valuation'
+  | 'Growth'
+  | 'Dividends'
+  | 'Risk'
+  | 'Profitability'
+  | 'Momentum'
+  | 'Financial Health';
+
+export interface MetricDefinition {
+  id: string;
+  name: MetricType;
+  category: MetricCategory;
+  description: string;
+  unit?: string;
+  formula?: string;
+  isHigherBetter?: boolean;
+}
+
+export interface MetricCategoryGroup {
+  category: MetricCategory;
+  metrics: MetricDefinition[];
+} 
